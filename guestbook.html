@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GUESTBOOK - KEV'S WORLD</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Load the Supabase client library -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Load our config FIRST -->
+    <script src="config.js"></script>
+    <script>
+    // Load config first
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+</head>
+<body>
+    <nav>
+        <a href="index.html">HOME</a>
+        <a href="closet.html">THE CLOSET</a>
+        <a href="fits.html">FIT PICS</a>
+        <a href="inspo.html">INSPO</a>
+        <a href="guestbook.html">GUESTBOOK</a>
+    </nav>
+
+    <h1>GUESTBOOK</h1>
+
+    <form id="comment-form">
+        <label for="author">Name:</label>
+        <input type="text" id="author" name="author" required>
+
+        <label for="comment_text">Comment:</label>
+        <textarea id="comment_text" name="comment_text" rows="4" required></textarea>
+
+        <button type="submit">POST COMMENT</button>
+    </form>
+
+    <div id="comments">
+        <!-- Comments will be loaded here by JavaScript -->
+    </div>
+
+    <script>
+        // Function to load and display comments
+        async function loadComments() {
+            const commentsContainer = document.getElementById('comments');
+            commentsContainer.innerHTML = "<p>Loading comments...</p>";
+
+            // Fetch comments from Supabase, order by newest first
+            const { data, error } = await supabase
+                .from('comments')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading comments:', error);
+                commentsContainer.innerHTML = "<p>Could not load comments.</p>";
+                return;
+            }
+
+            if (data.length === 0) {
+                commentsContainer.innerHTML = "<p>No comments yet. Be the first.</p>";
+                return;
+            }
+
+            // Clear the loading message
+            commentsContainer.innerHTML = '';
+
+            // Display each comment
+            data.forEach(comment => {
+                const commentEl = document.createElement('div');
+                commentEl.className = 'comment';
+                commentEl.innerHTML = `
+                    <div class="author">${comment.author}</div>
+                    <div class="text">${comment.comment_text}</div>
+                    <div style="color: #555; font-size: 0.7rem; margin-top: 0.5rem;">${new Date(comment.created_at).toLocaleString()}</div>
+                `;
+                commentsContainer.appendChild(commentEl);
+            });
+        }
+
+        // Function to handle form submission
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault(); // Stop the form from refreshing the page
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const author = formData.get('author');
+            const comment_text = formData.get('comment_text');
+
+            // Insert the new comment into the database
+            const { data, error } = await supabase
+                .from('comments')
+                .insert([{ author, comment_text }]);
+
+            if (error) {
+                alert('Error posting comment: ' + error.message);
+            } else {
+                // Success! Clear the form and reload comments
+                form.reset();
+                loadComments();
+                alert('Comment posted!');
+            }
+        });
+
+        // Load comments when the page opens
+        loadComments();
+    </script>
+
+</body>
+</html>

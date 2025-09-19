@@ -1,0 +1,135 @@
+/* style.css */
+/* This font gives that old Tumblr vibe */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
+body {
+    font-family: "Roboto Mono", monospace;
+    background-color: #0a0a0a; /* Pure black background */
+    color: #ffffff; /* White text */
+    margin: 0;
+    padding: 2rem;
+    line-height: 1.6;
+    background-image: url('data:image/svg+xml;utf8,<svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="%230a0a0a"/><text x="50%" y="50%" font-family="monospace" font-size="14" fill="%231a1a1a" text-anchor="middle" dominant-baseline="middle">OPIUM</text></svg>');
+    background-attachment: fixed;
+}
+
+/* Navigation Styles */
+nav {
+    text-align: center;
+    margin-bottom: 3rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 1rem;
+}
+
+nav a {
+    color: #ccc;
+    text-decoration: none;
+    margin: 0 1rem;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+nav a:hover {
+    color: #fff;
+}
+
+/* Page Header */
+h1 {
+    text-align: center;
+    font-weight: 100;
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 5px;
+    margin-bottom: 3rem;
+}
+
+/* Grid Layout for Galleries (Closet, Fits, Inspo) */
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.gallery-item {
+    background-color: #111;
+    border: 1px solid #222;
+    padding: 1rem;
+    text-align: center;
+}
+
+.gallery-item img {
+    max-width: 100%;
+    height: auto;
+    filter: grayscale(50%); /* Makes pics look a little gritty */
+}
+
+.gallery-item p {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* Guestbook Form Styles */
+form {
+    max-width: 500px;
+    margin: 0 auto 3rem auto;
+    background: #111;
+    padding: 2rem;
+    border: 1px solid #222;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ccc;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    background: #000;
+    border: 1px solid #333;
+    color: #fff;
+    font-family: "Roboto Mono", monospace;
+}
+
+button {
+    background: #000;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 0.7rem 2rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-family: "Roboto Mono", monospace;
+}
+
+button:hover {
+    background: #222;
+}
+
+/* Comments Section */
+#comments {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.comment {
+    background: #111;
+    border: 1px solid #222;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.comment .author {
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.comment .text {
+    color: #ccc;
+}
