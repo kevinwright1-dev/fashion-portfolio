@@ -2,7 +2,7 @@
 
 A full-stack website serving as a creative portfolio for my personal style. Inspired by the alte 2010s alternative and hip-hop aesthetic of artists like Playboi Carti and Chief Keef.
 
-![Site Screenshot](https://via.placeholder.com/800x400?text=Screenshot+Of+Your+Site+Here)
+![Site Screenshot](https://imgur.com/HnbHvKO)
 
 ## Live Demo
 
