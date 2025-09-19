@@ -6,7 +6,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 ## Live Demo
 
-[View the live site here](https://your-fashion-site.netlify.app)
+[View the live site here](https://kevinwright.netlify.app/)
 
 ## Features
 
