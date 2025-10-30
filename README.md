@@ -1,6 +1,6 @@
 # Kevin Fashion Portfolio
 
-A full-stack website serving as a creative portfolio for my personal style. Inspired by the alte 2010s alternative and hip-hop aesthetic of artists like Playboi Carti and Chief Keef.
+A full-stack website serving as a creative portfolio for my personal style. Inspired by the alt 2010s alternative and hip-hop aesthetic of artists like Playboi Carti and Chief Keef.
 
 ![Site Screenshot](https://i.imgur.com/m8r6w7W.png)
 
@@ -17,10 +17,10 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 ## Tech Stack
 
-*   **Frontend:** HTML5, CSS3, Vanilla JavaScript
-*   **Backend & Database:** Supabase (PostgreSQL)
+*   **Frontend:** HTML5, CSS, JavaScript
+*   **Backend & Database:** Supabase 
 *   **Deployment:** Netlify
-*   **Font:** Roboto Mono (Google Fonts)
+*   **Font:** Roboto Mono 
 
 ## Project Structure
 fashion-portfolio/
