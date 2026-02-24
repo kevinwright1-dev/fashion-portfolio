@@ -1,4 +1,4 @@
-# Fashion Closet Platform 👔
+# Fashion Portfolio
 
 **A minimalist, full-stack social wardrobe manager.** Inspired by 2010s alternative fashion culture and dark aesthetics.
 
