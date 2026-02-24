@@ -26,7 +26,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 *   **Deployment:** Netlify
 *   **Font:** Roboto Mono 
 
-## 🚧 Planned Features (In Progress)
+## Planned Features (In Progress)
 
 * **Social Interaction:** Implementing Like/Unlike and a Comment system for outfits.
 * **Community:** Follow/Unfollow functionality and personalized activity feeds.
@@ -35,16 +35,16 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
-* **Frontend:** Vanilla JavaScript, HTML5, CSS3 (Dark Theme).
-* **Backend:** Supabase (Auth & PostgreSQL).
+* **Frontend:** JavaScript, HTML5, CSS.
+* **Backend:** Supabase.
 * **Storage:** Supabase Storage (Buckets for avatars, items, and outfits).
 * **Deployment:** Netlify.
 
 ---
 
-## 🚀 Local Setup
+## Local Setup
 
 1.  **Clone & Navigate:**
     ```bash
@@ -62,7 +62,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 ---
 
-## 🗄 Database Summary
+## Database Summary
 The system runs on a relational PostgreSQL schema consisting of:
 * `profiles`: User metadata.
 * `clothing_items`: Individual wardrobe pieces.
