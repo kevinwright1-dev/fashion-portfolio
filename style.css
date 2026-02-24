@@ -62,7 +62,6 @@ h1 {
 .gallery-item img {
     max-width: 100%;
     height: auto;
-    filter: grayscale(50%); /* Makes pics look a little gritty */
 }
 
 .gallery-item p {
@@ -132,4 +131,13 @@ button:hover {
 
 .comment .text {
     color: #ccc;
+}
+
+.username-hint {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.25rem;
+}
+.username-hint.error {
+    color: #ff4d4d;
 }

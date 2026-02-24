@@ -3,38 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE CLOSET - KEV'S WORLD</title>
+    <title>THE CLOSET - Fashion Closet</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        .closet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .add-item-btn {
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 0.7rem 2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .add-item-btn:hover {
+            background: #222;
+        }
+
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            color: #666;
+            border: 1px solid #333;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .filter-btn.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .filter-btn:hover {
+            border-color: #999;
+            color: #999;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .empty-state p {
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
     <nav>
         <a href="index.html">HOME</a>
-        <a href="closet.html">THE CLOSET</a>
-        <a href="fits.html">FIT PICS</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
         <a href="inspo.html">INSPO</a>
-        <a href="guestbook.html">GUESTBOOK</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="profile.html" id="profile-link" style="display:none;">PROFILE</a>
+        <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <h1>THE CLOSET</h1>
-
-    <div class="gallery">
-        <!-- Item 1 -->
-        <div class="gallery-item">
-            <img src="path-to-jacket-image.jpg" alt="Vintage Leather Jacket">
-            <p>Vintage Leather Jacket</p>
-        </div>
-        <!-- Item 2 -->
-        <div class="gallery-item">
-            <img src="path-to-jeans-image.jpg" alt="Distressed Denim">
-            <p>Distressed Denim</p>
-        </div>
-        <!-- Item 3 -->
-        <div class="gallery-item">
-            <img src="path-to-shoes-image.jpg" alt="Rare Sneakers">
-            <p>'09 Sneakers</p>
-        </div>
-        <!-- Add more items as needed -->
+    <div class="closet-header">
+        <h1>THE CLOSET</h1>
+        <a href="add_item.html" class="add-item-btn" id="add-item-btn" style="display:none;">+ Add Item</a>
     </div>
 
+    <!-- Filters -->
+    <div class="filters">
+        <button class="filter-btn active" data-category="all">All</button>
+        <button class="filter-btn" data-category="tops">Tops</button>
+        <button class="filter-btn" data-category="bottoms">Bottoms</button>
+        <button class="filter-btn" data-category="shoes">Shoes</button>
+        <button class="filter-btn" data-category="accessories">Accessories</button>
+        <button class="filter-btn" data-category="outerwear">Outerwear</button>
+        <button class="filter-btn" data-category="other">Other</button>
+    </div>
+
+    <div id="loading" style="text-align: center; padding: 2rem; color: #666;">
+        Loading closet...
+    </div>
+
+    <div class="gallery" id="items-gallery" style="display: none;">
+        <!-- Items will be loaded here -->
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+        <p style="font-size: 3rem;">👔</p>
+        <p>Your closet is empty</p>
+        <a href="add_item.html" class="add-item-btn">Add Your First Item</a>
+    </div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+        let allItems = [];
+        let currentFilter = 'all';
+
+        // Initialize
+        init();
+
+        async function init() {
+            // Check auth
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('profile-link').style.display = 'inline';
+                document.getElementById('add-item-btn').style.display = 'inline-block';
+                document.getElementById('auth-link').style.display = 'none';
+            }
+
+            // Load items
+            await loadItems();
+
+            // Setup filter buttons
+            setupFilters();
+        }
+
+        async function loadItems() {
+            try {
+                let query = supabaseClient
+                    .from('clothing_items')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                // If user is logged in, show only their items
+                // Otherwise show all public items
+                if (currentUser) {
+                    query = query.eq('user_id', currentUser.id);
+                }
+
+                const { data, error } = await query;
+
+                if (error) throw error;
+
+                allItems = data || [];
+                displayItems(allItems);
+
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading items:', error);
+                document.getElementById('loading').textContent = 'Error loading items';
+            }
+        }
+
+        function displayItems(items) {
+            const gallery = document.getElementById('items-gallery');
+            const emptyState = document.getElementById('empty-state');
+
+            if (items.length === 0) {
+                gallery.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            gallery.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            gallery.innerHTML = items.map(item => `
+                <div class="gallery-item" data-category="${item.category}">
+                    <img src="${item.image_url}" alt="${item.title}" onclick="viewItem('${item.id}')">
+                    <p><strong>${item.title}</strong></p>
+                    ${item.brand ? `<p style="font-size: 0.8rem; color: #666;">${item.brand}</p>` : ''}
+                    <p style="font-size: 0.75rem; color: #999; text-transform: uppercase;">${item.category}</p>
+                </div>
+            `).join('');
+        }
+
+        function setupFilters() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Filter items
+                    currentFilter = this.dataset.category;
+                    filterItems(currentFilter);
+                });
+            });
+        }
+
+        function filterItems(category) {
+            if (category === 'all') {
+                displayItems(allItems);
+            } else {
+                const filtered = allItems.filter(item => item.category === category);
+                displayItems(filtered);
+            }
+        }
+
+        function viewItem(itemId) {
+            // For now, just log it
+            // In future weeks, we'll create a detail view
+            console.log('View item:', itemId);
+            // window.location.href = `item.html?id=${itemId}`;
+        }
+    </script>
 </body>
 </html>

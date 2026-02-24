@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tag Outfit - Fashion Closet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        .tag-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+
+        .tag-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .outfit-section {
+            background: #111;
+            padding: 2rem;
+            border: 1px solid #222;
+            border-radius: 8px;
+        }
+
+        .outfit-image-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: crosshair;
+        }
+
+        .outfit-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .tag-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #000;
+        }
+
+        .tag-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .items-section {
+            background: #111;
+            padding: 2rem;
+            border: 1px solid #222;
+            border-radius: 8px;
+        }
+
+        .items-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .item-card {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .item-card:hover {
+            border-color: #fff;
+            background: #1a1a1a;
+        }
+
+        .item-card.selected {
+            border-color: #00ff00;
+            background: #1a3a1a;
+        }
+
+        .item-card img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 1px solid #333;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-info h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 0.9rem;
+        }
+
+        .item-info p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .tagged-items {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #333;
+        }
+
+        .tagged-item {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-tag-btn {
+            background: transparent;
+            border: 1px solid #ff6b6b;
+            color: #ff6b6b;
+            padding: 0.25rem 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .remove-tag-btn:hover {
+            background: #ff6b6b;
+            color: #000;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-buttons button {
+            flex: 1;
+        }
+
+        .finish-btn {
+            background: #fff;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .finish-btn:hover {
+            background: #ddd;
+        }
+
+        .skip-btn {
+            background: transparent;
+            border: 1px solid #666;
+            color: #666;
+        }
+
+        .skip-btn:hover {
+            background: #111;
+            border-color: #999;
+            color: #999;
+        }
+
+        .instructions {
+            background: #1a1a1a;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid #fff;
+            font-size: 0.85rem;
+            color: #ccc;
+        }
+
+        @media (max-width: 768px) {
+            .tag-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">HOME</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
+        <a href="inspo.html">INSPO</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="profile.html">PROFILE</a>
+    </nav>
+
+    <div class="tag-container">
+        <h1 style="text-align: center; margin-bottom: 2rem;">Tag Your Items</h1>
+
+        <div class="instructions">
+            <strong>How to tag:</strong> Click on your outfit photo where each item is, then select the item from your closet on the right.
+        </div>
+
+        <div class="tag-layout">
+            <!-- Left: Outfit Image -->
+            <div class="outfit-section">
+                <h3 style="margin-bottom: 1rem;" id="outfit-title">Loading...</h3>
+                <div class="outfit-image-wrapper" id="image-wrapper">
+                    <img id="outfit-image" class="outfit-image" src="" alt="Outfit">
+                    <!-- Tags will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Right: Items List -->
+            <div class="items-section">
+                <h3 style="margin-bottom: 1rem;">Your Closet</h3>
+                <div id="items-list" class="items-list">
+                    <p style="color: #666;">Loading your items...</p>
+                </div>
+
+                <div class="tagged-items" id="tagged-items" style="display: none;">
+                    <h4 style="margin-bottom: 1rem;">Tagged Items</h4>
+                    <div id="tagged-list"></div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="skip-btn" id="skip-btn">Skip Tagging</button>
+                    <button class="finish-btn" id="finish-btn">Finish & View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+        let currentOutfit = null;
+        let userItems = [];
+        let tags = [];
+        let tempTagPosition = null;
+
+        // Get outfit ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const outfitId = urlParams.get('id');
+
+        if (!outfitId) {
+            window.location.href = 'fits.html';
+        }
+
+        // Initialize
+        init();
+
+        async function init() {
+            // Check auth
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            currentUser = session.user;
+            await loadOutfit();
+            await loadUserItems();
+        }
+
+        async function loadOutfit() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('outfits')
+                    .select('*')
+                    .eq('id', outfitId)
+                    .single();
+
+                if (error) throw error;
+
+                currentOutfit = data;
+                document.getElementById('outfit-title').textContent = data.title;
+                document.getElementById('outfit-image').src = data.image_url;
+
+            } catch (error) {
+                console.error('Error loading outfit:', error);
+                alert('Error loading outfit');
+                window.location.href = 'fits.html';
+            }
+        }
+
+        async function loadUserItems() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('clothing_items')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                userItems = data || [];
+                displayItems();
+
+            } catch (error) {
+                console.error('Error loading items:', error);
+            }
+        }
+
+        function displayItems() {
+            const container = document.getElementById('items-list');
+
+            if (userItems.length === 0) {
+                container.innerHTML = '<p style="color: #666;">No items in closet. <a href="add-item.html">Add items</a> to tag them!</p>';
+                return;
+            }
+
+            container.innerHTML = userItems.map(item => `
+                <div class="item-card" data-item-id="${item.id}">
+                    <img src="${item.image_url}" alt="${item.title}">
+                    <div class="item-info">
+                        <h4>${item.title}</h4>
+                        <p>${item.brand || ''} ${item.category ? '• ' + item.category : ''}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.addEventListener('click', () => selectItem(card));
+            });
+        }
+
+        // Click on image to place tag
+        document.getElementById('image-wrapper').addEventListener('click', (e) => {
+            if (e.target.id !== 'outfit-image') return; // Don't trigger on existing tags
+
+            const rect = e.target.getBoundingClientRect();
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+
+            tempTagPosition = { x, y };
+
+            // Highlight that we're waiting for item selection
+            alert('Now select an item from your closet to tag at this position');
+        });
+
+        function selectItem(card) {
+            if (!tempTagPosition) {
+                alert('Click on the outfit photo first to place a tag');
+                return;
+            }
+
+            const itemId = card.dataset.itemId;
+            const item = userItems.find(i => i.id === itemId);
+
+            addTag(item, tempTagPosition.x, tempTagPosition.y);
+            tempTagPosition = null;
+        }
+
+        function addTag(item, x, y) {
+            const tag = {
+                item_id: item.id,
+                item,
+                x,
+                y
+            };
+
+            tags.push(tag);
+            renderTags();
+            updateTaggedList();
+        }
+
+        function renderTags() {
+            const wrapper = document.getElementById('image-wrapper');
+            
+            // Remove old markers
+            wrapper.querySelectorAll('.tag-marker').forEach(m => m.remove());
+
+            // Add new markers
+            tags.forEach((tag, index) => {
+                const marker = document.createElement('div');
+                marker.className = 'tag-marker';
+                marker.style.left = tag.x + '%';
+                marker.style.top = tag.y + '%';
+                marker.textContent = index + 1;
+                marker.title = tag.item.title;
+                wrapper.appendChild(marker);
+            });
+        }
+
+        function updateTaggedList() {
+            const container = document.getElementById('tagged-list');
+            const section = document.getElementById('tagged-items');
+
+            if (tags.length === 0) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+
+            container.innerHTML = tags.map((tag, index) => `
+                <div class="tagged-item">
+                    <span>${index + 1}. ${tag.item.title}</span>
+                    <button class="remove-tag-btn" onclick="removeTag(${index})">Remove</button>
+                </div>
+            `).join('');
+        }
+
+        function removeTag(index) {
+            tags.splice(index, 1);
+            renderTags();
+            updateTaggedList();
+        }
+
+        // Finish button
+        document.getElementById('finish-btn').addEventListener('click', async () => {
+            await saveTags();
+            window.location.href = 'fits.html';
+        });
+
+        // Skip button
+        document.getElementById('skip-btn').addEventListener('click', () => {
+            window.location.href = 'fits.html';
+        });
+
+        async function saveTags() {
+            if (tags.length === 0) return;
+
+            try {
+                const tagData = tags.map(tag => ({
+                    outfit_id: outfitId,
+                    clothing_item_id: tag.item_id,
+                    tag_position_x: tag.x,
+                    tag_position_y: tag.y
+                }));
+
+                const { error } = await supabaseClient
+                    .from('outfit_items')
+                    .insert(tagData);
+
+                if (error) throw error;
+
+                console.log('Tags saved successfully!');
+
+            } catch (error) {
+                console.error('Error saving tags:', error);
+                alert('Error saving tags: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

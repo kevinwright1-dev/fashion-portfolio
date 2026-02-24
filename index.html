@@ -3,25 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KEV'S WORLD</title>
+    <title>FASHION SENSE</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav>
         <a href="index.html">HOME</a>
-        <a href="closet.html">THE CLOSET</a>
-        <a href="fits.html">FIT PICS</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
         <a href="inspo.html">INSPO</a>
-        <a href="guestbook.html">GUESTBOOK</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="profile.html" id="profile-link" style="display:none;">PROFILE</a>
+        <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <h1>KEV'S WORLD</h1>
+    <h1>Fashion Sense</h1>
 
     <div style="text-align: center;">
-        <!-- Replace 'your-image.jpg' with a cool picture of you -->
-        <img src="your-vibe-pic.jpg" alt="Vibe" style="max-width: 400px; border: 1px solid #333; filter: grayscale(100%);">
-        <p style="margin-top: 2rem; color: #666;">ATL // MOREHOUSE // CS // FASHION</p>
+        <img src="pics\IMG_7358.jpeg" alt="Vibe" style="max-width: 400px; border: 1px solid #333;">
+        <p style="margin-top: 2rem; color: #666;">Kevin Wright</p>
     </div>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Check if user is logged in and update nav
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            const nav = document.querySelector('nav');
+            nav.innerHTML += '<a href="profile.html">PROFILE</a><a href="#" onclick="logout()">LOGOUT</a>';
+        } else {
+            const nav = document.querySelector('nav');
+            nav.innerHTML += '<a href="auth.html">LOGIN</a>';
+        }
+    });
+
+    async function logout() {
+        await supabase.auth.signOut();
+        window.location.reload();
+    }
+</script>
 
 </body>
 </html>

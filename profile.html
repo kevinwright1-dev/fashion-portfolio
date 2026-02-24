@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Fashion Closet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+</head>
+<body>
+    <nav>
+        <a href="index.html">HOME</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
+        <a href="inspo.html">INSPO</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="#" id="logout-btn" style="color: #ff6b6b;">LOGOUT</a>
+    </nav>
+
+    <div class="profile-container" style="max-width: 800px; margin: 0 auto;">
+        <div id="loading">Loading profile...</div>
+        <div id="profile-content" style="display: none;">
+            <div style="text-align: center; margin-bottom: 3rem;">
+                <img id="avatar" src="" alt="Avatar" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid #333;">
+                <h1 id="username" style="margin-top: 1rem;"></h1>
+                <p id="bio" style="color: #666;"></p>
+                <button id="edit-profile-btn" style="margin-top: 1rem;">Edit Profile</button>
+            </div>
+
+            <div style="display: flex; gap: 2rem; justify-content: center; margin-bottom: 3rem; text-align: center;">
+                <div>
+                    <div id="items-count" style="font-size: 2rem; font-weight: bold;">0</div>
+                    <div style="color: #666; font-size: 0.9rem;">Items</div>
+                </div>
+                <div>
+                    <div id="outfits-count" style="font-size: 2rem; font-weight: bold;">0</div>
+                    <div style="color: #666; font-size: 0.9rem;">Outfits</div>
+                </div>
+                <div>
+                    <div id="followers-count" style="font-size: 2rem; font-weight: bold;">0</div>
+                    <div style="color: #666; font-size: 0.9rem;">Followers</div>
+                </div>
+            </div>
+
+            <h2>My Closet</h2>
+            <div id="user-items" class="gallery"></div>
+
+            <h2>My Outfits</h2>
+            <div id="user-outfits" class="gallery"></div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+
+        // Check authentication
+        checkAuth();
+
+        async function checkAuth() {
+            console.log('Checking authentication...');
+            
+            try {
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+                
+                console.log('Session:', session);
+                console.log('Error:', error);
+                
+                if (error) throw error;
+                
+                if (!session) {
+                    console.log('No session found, redirecting to auth...');
+                    window.location.href = 'auth.html';
+                    return;
+                }
+
+                currentUser = session.user;
+                console.log('Current user:', currentUser);
+                loadProfile();
+                
+            } catch (error) {
+                console.error('Auth check error:', error);
+                document.getElementById('loading').textContent = 'Error loading profile: ' + error.message;
+            }
+        }
+
+        async function loadProfile() {
+            console.log('Loading profile for user:', currentUser.id);
+            
+            try {
+                // Get profile data
+                const { data: profile, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                console.log('Profile data:', profile);
+                console.log('Profile error:', error);
+
+                if (error) {
+                    // Profile might not exist yet, create it
+                    if (error.code === 'PGRST116') {
+                        console.log('Profile not found, creating...');
+                        const { data: newProfile, error: createError } = await supabaseClient
+                            .from('profiles')
+                            .insert([{
+                                id: currentUser.id,
+                                username: currentUser.email.split('@')[0] + '_' + Date.now(),
+                                full_name: currentUser.user_metadata?.full_name || '',
+                                avatar_url: currentUser.user_metadata?.avatar_url || 'https://via.placeholder.com/150'
+                            }])
+                            .select()
+                            .single();
+                        
+                        if (createError) throw createError;
+                        displayProfile(newProfile);
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    displayProfile(profile);
+                }
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                document.getElementById('loading').textContent = 'Error loading profile: ' + error.message;
+            }
+        }
+
+        async function displayProfile(profile) {
+            console.log('Displaying profile:', profile);
+            
+            // Display profile
+            document.getElementById('username').textContent = '@' + (profile.username || 'user');
+            document.getElementById('bio').textContent = profile.bio || 'No bio yet';
+            document.getElementById('avatar').src = profile.avatar_url || 'https://via.placeholder.com/150';
+
+            // Get counts
+            const { count: itemsCount } = await supabaseClient
+                .from('clothing_items')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', currentUser.id);
+
+            const { count: outfitsCount } = await supabaseClient
+                .from('outfits')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', currentUser.id);
+
+            const { count: followersCount } = await supabaseClient
+                .from('follows')
+                .select('*', { count: 'exact', head: true })
+                .eq('following_id', currentUser.id);
+
+            document.getElementById('items-count').textContent = itemsCount || 0;
+            document.getElementById('outfits-count').textContent = outfitsCount || 0;
+            document.getElementById('followers-count').textContent = followersCount || 0;
+
+            // Load user's items and outfits
+            loadUserItems();
+            loadUserOutfits();
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('profile-content').style.display = 'block';
+        }
+
+        async function loadUserItems() {
+            const { data: items, error } = await supabaseClient
+                .from('clothing_items')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading items:', error);
+                return;
+            }
+
+            const container = document.getElementById('user-items');
+            
+            if (items.length === 0) {
+                container.innerHTML = '<p style="color: #666;">No items yet. Start building your closet!</p>';
+                return;
+            }
+
+            container.innerHTML = items.map(item => `
+                <div class="gallery-item">
+                    <img src="${item.image_url}" alt="${item.title}">
+                    <p>${item.title}</p>
+                    <p style="font-size: 0.8rem; color: #666;">${item.brand || ''}</p>
+                </div>
+            `).join('');
+        }
+
+        async function loadUserOutfits() {
+            const { data: outfits, error } = await supabaseClient
+                .from('outfits')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error loading outfits:', error);
+                return;
+            }
+
+            const container = document.getElementById('user-outfits');
+            
+            if (outfits.length === 0) {
+                container.innerHTML = '<p style="color: #666;">No outfits yet. Share your first fit!</p>';
+                return;
+            }
+
+            container.innerHTML = outfits.map(outfit => `
+                <div class="gallery-item">
+                    <img src="${outfit.image_url}" alt="${outfit.title}">
+                    <p>${outfit.title}</p>
+                    <p style="font-size: 0.8rem; color: #666;">❤️ ${outfit.likes_count} 💬 ${outfit.comments_count}</p>
+                </div>
+            `).join('');
+        }
+
+        // Edit Profile button handler
+        document.getElementById('edit-profile-btn').addEventListener('click', function() {
+            window.location.href = 'edit_profile.html';
+        });
+
+        // Logout handler
+        document.getElementById('logout-btn').addEventListener('click', async (e) => {
+            e.preventDefault();
+            console.log('Logging out...');
+            
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) throw error;
+                
+                console.log('Logged out successfully');
+                window.location.href = 'auth.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                alert('Error logging out: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
