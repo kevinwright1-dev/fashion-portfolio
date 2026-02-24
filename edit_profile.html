@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Fashion Closet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        .edit-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: #111;
+            padding: 2rem;
+            border: 1px solid #222;
+            border-radius: 8px;
+        }
+
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .avatar-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #333;
+            margin-bottom: 1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .file-input-label:hover {
+            background: #222;
+        }
+
+        .success-message {
+            background: #00ff0020;
+            border: 1px solid #00ff00;
+            color: #6bff6b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #ff000020;
+            border: 1px solid #ff0000;
+            color: #ff6b6b;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .form-actions button {
+            flex: 1;
+        }
+
+        .cancel-btn {
+            background: transparent;
+            border: 1px solid #666;
+            color: #666;
+        }
+
+        .cancel-btn:hover {
+            background: #111;
+            border-color: #999;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">HOME</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
+        <a href="inspo.html">INSPO</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="profile.html">PROFILE</a>
+    </nav>
+
+    <div class="edit-container">
+        <h1 style="text-align: center; margin-bottom: 2rem;">Edit Profile</h1>
+
+        <div id="message-container"></div>
+
+        <!-- Avatar Upload Section -->
+        <div class="avatar-section">
+            <img id="avatar-preview" class="avatar-preview" src="https://via.placeholder.com/150" alt="Avatar">
+            <div class="file-input-wrapper">
+                <label class="file-input-label">
+                    Upload Avatar
+                    <input type="file" id="avatar-input" accept="image/*">
+                </label>
+            </div>
+            <p style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">Max 5MB • JPG, PNG, GIF, WEBP</p>
+        </div>
+
+        <!-- Profile Form -->
+        <form id="profile-form">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" pattern="[a-zA-Z0-9_]{3,30}" required>
+                <div class="username-hint" style="margin-bottom: 1rem;">3-30 characters, letters, numbers, and underscores only</div>
+            </div>
+
+            <div class="form-group">
+                <label for="full-name">Full Name:</label>
+                <input type="text" id="full-name">
+            </div>
+
+            <div class="form-group">
+                <label for="bio">Bio:</label>
+                <textarea id="bio" rows="4" maxlength="200"></textarea>
+                <div class="username-hint" id="bio-counter" style="margin-bottom: 1rem;">0/200 characters</div>
+            </div>
+
+            <div class="form-group">
+                <label for="location">Location:</label>
+                <input type="text" id="location" placeholder="City, State">
+            </div>
+
+            <div class="form-group">
+                <label for="website">Website:</label>
+                <input type="url" id="website" placeholder="https://yourwebsite.com">
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="cancel-btn" id="cancel-btn">Cancel</button>
+                <button type="submit">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+        let currentProfile = null;
+
+        // Initialize
+        init();
+
+        async function init() {
+            // Check auth
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            currentUser = session.user;
+            await loadProfile();
+        }
+
+        async function loadProfile() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (error) throw error;
+
+                currentProfile = data;
+                populateForm(data);
+
+            } catch (error) {
+                console.error('Error loading profile:', error);
+                showMessage('Error loading profile: ' + error.message, 'error');
+            }
+        }
+
+        function populateForm(profile) {
+            document.getElementById('username').value = profile.username || '';
+            document.getElementById('full-name').value = profile.full_name || '';
+            document.getElementById('bio').value = profile.bio || '';
+            document.getElementById('location').value = profile.location || '';
+            document.getElementById('website').value = profile.website || '';
+            document.getElementById('avatar-preview').src = profile.avatar_url || 'https://via.placeholder.com/150';
+            
+            updateBioCounter();
+        }
+
+        // Bio character counter
+        document.getElementById('bio').addEventListener('input', updateBioCounter);
+
+        function updateBioCounter() {
+            const bio = document.getElementById('bio').value;
+            document.getElementById('bio-counter').textContent = `${bio.length}/200 characters`;
+        }
+
+        // Avatar upload handler
+        document.getElementById('avatar-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showMessage('Image must be less than 5MB', 'error');
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showMessage('Please upload an image file', 'error');
+                return;
+            }
+
+            try {
+                showMessage('Uploading avatar...', 'info');
+
+                // Create unique filename
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${currentUser.id}/avatar_${Date.now()}.${fileExt}`;
+
+                // Upload to Supabase Storage
+                const { data, error } = await supabaseClient.storage
+                    .from('avatars')
+                    .upload(fileName, file, {
+                        cacheControl: '3600',
+                        upsert: true
+                    });
+
+                if (error) throw error;
+
+                // Get public URL
+                const { data: { publicUrl } } = supabaseClient.storage
+                    .from('avatars')
+                    .getPublicUrl(fileName);
+
+                // Update preview
+                document.getElementById('avatar-preview').src = publicUrl;
+
+                // Update database
+                const { error: updateError } = await supabaseClient
+                    .from('profiles')
+                    .update({ avatar_url: publicUrl })
+                    .eq('id', currentUser.id);
+
+                if (updateError) throw updateError;
+
+                showMessage('Avatar uploaded successfully!', 'success');
+
+            } catch (error) {
+                console.error('Error uploading avatar:', error);
+                showMessage('Error uploading avatar: ' + error.message, 'error');
+            }
+        });
+
+        // Form submit handler
+        document.getElementById('profile-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const fullName = document.getElementById('full-name').value.trim();
+            const bio = document.getElementById('bio').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const website = document.getElementById('website').value.trim();
+
+            // Validate username
+            if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
+                showMessage('Username must be 3-30 characters and contain only letters, numbers, and underscores', 'error');
+                return;
+            }
+
+            // Check if username changed and if it's taken
+            if (username !== currentProfile.username) {
+                const { data: existingUser } = await supabaseClient
+                    .from('profiles')
+                    .select('username')
+                    .eq('username', username)
+                    .neq('id', currentUser.id)
+                    .single();
+
+                if (existingUser) {
+                    showMessage('Username is already taken', 'error');
+                    return;
+                }
+            }
+
+            try {
+                showMessage('Saving changes...', 'info');
+
+                const { error } = await supabaseClient
+                    .from('profiles')
+                    .update({
+                        username,
+                        full_name: fullName,
+                        bio,
+                        location,
+                        website
+                    })
+                    .eq('id', currentUser.id);
+
+                if (error) throw error;
+
+                showMessage('Profile updated successfully!', 'success');
+
+                // Redirect to profile after 1 second
+                setTimeout(() => {
+                    window.location.href = 'profile.html';
+                }, 1000);
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                showMessage('Error updating profile: ' + error.message, 'error');
+            }
+        });
+
+        // Cancel button
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+            window.location.href = 'profile.html';
+        });
+
+        // Message display helper
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('message-container');
+            const className = type === 'error' ? 'error-message' : type === 'success' ? 'success-message' : 'success-message';
+            container.innerHTML = `<div class="${className}">${message}</div>`;
+
+            // Auto-clear info messages after 3 seconds
+            if (type === 'info') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>

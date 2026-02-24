@@ -3,38 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FIT PICS - KEV'S WORLD</title>
+    <title>FITS - Fashion Closet</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        .fits-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .add-outfit-btn {
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 0.7rem 2rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .add-outfit-btn:hover {
+            background: #222;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .empty-state p {
+            margin-bottom: 2rem;
+        }
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: relative;
+            max-width: 1200px;
+            max-height: 90vh;
+            margin: 2rem auto;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #ff6b6b;
+            color: #000;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1002;
+            font-weight: bold;
+        }
+
+        .modal-close:hover {
+            background: #ff4444;
+        }
+    </style>
 </head>
 <body>
     <nav>
         <a href="index.html">HOME</a>
-        <a href="closet.html">THE CLOSET</a>
-        <a href="fits.html">FIT PICS</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
         <a href="inspo.html">INSPO</a>
-        <a href="guestbook.html">GUESTBOOK</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="profile.html" id="profile-link" style="display:none;">PROFILE</a>
+        <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <h1>FITS</h1>
-
-    <div class="gallery">
-        <!-- Item 1 -->
-        <div class="gallery-item">
-            <img src="path-to-jacket-image.jpg" alt="Vintage Leather Jacket">
-            <p>Vintage Leather Jacket</p>
-        </div>
-        <!-- Item 2 -->
-        <div class="gallery-item">
-            <img src="path-to-jeans-image.jpg" alt="Distressed Denim">
-            <p>Distressed Denim</p>
-        </div>
-        <!-- Item 3 -->
-        <div class="gallery-item">
-            <img src="path-to-shoes-image.jpg" alt="Rare Sneakers">
-            <p>'09 Sneakers</p>
-        </div>
-        <!-- Add more items as needed -->
+    <div class="fits-header">
+        <h1>FITS</h1>
+        <a href="add-outfit.html" class="add-outfit-btn" id="add-outfit-btn" style="display:none;">+ Share Fit</a>
     </div>
 
+    <div id="loading" style="text-align: center; padding: 2rem; color: #666;">
+        Loading fits...
+    </div>
+
+    <div class="gallery" id="outfits-gallery" style="display: none;">
+        <!-- Outfits will be loaded here -->
+    </div>
+
+    <div id="empty-state" class="empty-state" style="display: none;">
+        <p style="font-size: 3rem;">👔</p>
+        <p>No fits yet</p>
+        <a href="add-outfit.html" class="add-outfit-btn">Share Your First Fit</a>
+    </div>
+    <!-- Modal Overlay -->
+    <div id="outfit-modal" class="modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="close-modal-btn">×</button>
+            
+            <div id="modal-body">
+                <p style="text-align: center; padding: 3rem; color: #666;">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+        let allOutfits = [];
+
+        // Initialize
+        init();
+        
+        // Setup modal close button
+        document.getElementById('close-modal-btn').addEventListener('click', closeModal);
+
+        // Close modal when clicking backdrop
+        document.querySelector('.modal-backdrop')?.addEventListener('click', closeModal);
+
+        async function init() {
+            // Check auth
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                document.getElementById('profile-link').style.display = 'inline';
+                document.getElementById('add-outfit-btn').style.display = 'inline-block';
+                document.getElementById('auth-link').style.display = 'none';
+            }
+
+            // Load outfits
+            await loadOutfits();
+        }
+
+        async function loadOutfits() {
+            try {
+                let query = supabaseClient
+                    .from('outfits')
+                    .select(`
+                        *,
+                        profiles (username, avatar_url),
+                        outfit_items (
+                            clothing_item_id,
+                            tag_position_x,
+                            tag_position_y,
+                            clothing_items (*)
+                        )
+                    `)
+                    .order('created_at', { ascending: false });
+
+                // If user is logged in, show only their outfits
+                // Otherwise show all public outfits
+                if (currentUser) {
+                    query = query.eq('user_id', currentUser.id);
+                }
+
+                const { data, error } = await query;
+
+                if (error) throw error;
+
+                allOutfits = data || [];
+                displayOutfits(allOutfits);
+
+                document.getElementById('loading').style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading outfits:', error);
+                document.getElementById('loading').textContent = 'Error loading outfits';
+            }
+        }
+
+        function displayOutfits(outfits) {
+            const gallery = document.getElementById('outfits-gallery');
+            const emptyState = document.getElementById('empty-state');
+
+            if (outfits.length === 0) {
+                gallery.style.display = 'none';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            gallery.style.display = 'grid';
+            emptyState.style.display = 'none';
+
+            gallery.innerHTML = outfits.map(outfit => {
+                const tagCount = outfit.outfit_items ? outfit.outfit_items.length : 0;
+                const username = outfit.profiles ? outfit.profiles.username : 'Unknown';
+                
+                return `
+                    <div class="gallery-item">
+                        <img src="${outfit.image_url}" alt="${outfit.title}" onclick="viewOutfit('${outfit.id}')">
+                        <p><strong>${outfit.title}</strong></p>
+                        <p style="font-size: 0.75rem; color: #999;">by @${username}</p>
+                        <p style="font-size: 0.75rem; color: #666;">
+                            ${tagCount > 0 ? `🏷️ ${tagCount} items tagged` : 'No items tagged'}
+                        </p>
+                        <p style="font-size: 0.75rem; color: #666;">
+                            ❤️ ${outfit.likes_count || 0} 💬 ${outfit.comments_count || 0}
+                        </p>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function viewOutfit(outfitId) {
+            console.log('Opening outfit:', outfitId);
+            openModal(outfitId);
+        }
+
+        function openModal(outfitId) {
+            const modal = document.getElementById('outfit-modal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            
+            // Load the outfit details
+            loadOutfitDetail(outfitId);
+        }
+
+        function closeModal() {
+        const modal = document.getElementById('outfit-modal');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto'; // Re-enable scrolling
+        }
+    </script>
 </body>
 </html>

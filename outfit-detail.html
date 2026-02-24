@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outfit Details - Fashion Closet</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="like-system.js"></script>
+    <style>
+        .outfit-detail-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+        }
+
+        .back-link {
+            color: #666;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+
+        .detail-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .outfit-section {
+            background: #111;
+            padding: 2rem;
+            border: 1px solid #222;
+            border-radius: 8px;
+        }
+
+        .outfit-image-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .outfit-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .tag-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #000;
+            z-index: 10;
+        }
+
+        .tag-marker:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.8);
+            z-index: 20;
+        }
+
+        .tag-marker.active {
+            background: #00ff00;
+            transform: translate(-50%, -50%) scale(1.3);
+            z-index: 20;
+        }
+
+        .tag-popup {
+            position: absolute;
+            background: #000;
+            border: 2px solid #fff;
+            padding: 1rem;
+            min-width: 200px;
+            z-index: 30;
+            display: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+        }
+
+        .tag-popup.show {
+            display: block;
+        }
+
+        .tag-popup img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            margin-bottom: 0.5rem;
+            border: 1px solid #333;
+        }
+
+        .tag-popup h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .tag-popup p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #999;
+        }
+
+        .close-popup {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #ff6b6b;
+            color: #000;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .info-section {
+            background: #111;
+            padding: 2rem;
+            border: 1px solid #222;
+            border-radius: 8px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #333;
+        }
+
+        .user-details h3 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+        }
+
+        .user-details p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .outfit-info {
+            margin-bottom: 2rem;
+        }
+
+        .outfit-info h1 {
+            text-align: left;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .outfit-info p {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .outfit-meta {
+            display: flex;
+            gap: 2rem;
+            margin: 1.5rem 0;
+            padding: 1rem 0;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+
+        .meta-item {
+            text-align: center;
+        }
+
+        .meta-item .count {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+        }
+
+        .meta-item .label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        .tagged-items-list {
+            margin-top: 2rem;
+        }
+
+        .tagged-items-list h3 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .tagged-item-card {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tagged-item-card:hover {
+            border-color: #fff;
+            background: #1a1a1a;
+        }
+
+        .tagged-item-card img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border: 1px solid #333;
+        }
+
+        .tagged-item-info h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 0.85rem;
+        }
+
+        .tagged-item-info p {
+            margin: 0;
+            font-size: 0.7rem;
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .like-btn, .comment-btn {
+            flex: 1;
+            padding: 0.75rem;
+        }
+
+        .like-btn.liked {
+            background: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .edit-btn, .delete-btn {
+            background: transparent;
+            border: 1px solid #666;
+            color: #666;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .edit-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .delete-btn:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        @media (max-width: 768px) {
+            .detail-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .comment-item {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .comment-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .comment-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #333;
+        }
+
+        .comment-username {
+            font-weight: bold;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .comment-time {
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        .comment-text {
+            color: #ccc;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .comment-action-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            padding: 0;
+            font-size: 0.8rem;
+        }
+
+        .comment-action-btn:hover {
+            color: #fff;
+        }
+
+        .delete-comment-btn {
+            color: #ff6b6b;
+        }
+
+        .delete-comment-btn:hover {
+            color: #ff4444;
+        }
+
+        .no-comments {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">HOME</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
+        <a href="inspo.html">INSPO</a>
+        <a href="guestbook.html">COMMENTS</a>
+        <a href="profile.html">PROFILE</a>
+    </nav>
+
+    <div class="outfit-detail-container">
+        <a href="fits.html" class="back-link">← Back to Fits</a>
+
+        <div id="loading" style="text-align: center; padding: 4rem; color: #666;">
+            Loading outfit...
+        </div>
+
+        <div id="outfit-content" class="detail-layout" style="display: none;">
+            <!-- Left: Outfit Image -->
+            <div class="outfit-section">
+                <div class="outfit-image-wrapper" id="image-wrapper">
+                    <img id="outfit-image" class="outfit-image" src="" alt="Outfit">
+                    <!-- Tags will be added here -->
+                    <div id="tag-popup" class="tag-popup">
+                        <button class="close-popup" onclick="closePopup()">×</button>
+                        <img id="popup-image" src="" alt="Item">
+                        <h4 id="popup-title"></h4>
+                        <p id="popup-brand"></p>
+                        <p id="popup-category"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Info & Details -->
+            <div>
+                <div class="info-section">
+                    <!-- User Info -->
+                    <div class="user-info">
+                        <img id="user-avatar" class="user-avatar" src="" alt="User">
+                        <div class="user-details">
+                            <h3 id="username"></h3>
+                            <p id="date"></p>
+                        </div>
+                    </div>
+
+                    <!-- Outfit Info -->
+                    <div class="outfit-info">
+                        <h1 id="outfit-title"></h1>
+                        <p id="outfit-description" style="margin-bottom: 1rem;"></p>
+                        <p id="outfit-occasion"></p>
+                        <p id="outfit-location"></p>
+                    </div>
+
+                    <!-- Engagement -->
+                    <div class="outfit-meta">
+                        <div class="meta-item">
+                            <span class="count" id="likes-count">0</span>
+                            <span class="label">Likes</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="count" id="comments-count">0</span>
+                            <span class="label">Comments</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="count" id="tags-count">0</span>
+                            <span class="label">Items</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons" id="action-buttons">
+                        <button class="like-btn" id="like-btn">❤️ Like</button>
+                        <button class="comment-btn">💬 Comment</button>
+                    </div>
+
+                    <!-- Owner Actions -->
+                    <div id="owner-actions" style="display: none; margin-top: 1rem; text-align: center;">
+                        <button class="edit-btn" id="edit-tags-btn">Edit Tags</button>
+                        <button class="delete-btn" id="delete-btn">Delete Outfit</button>
+                    </div>
+                </div>
+
+                <!-- Tagged Items -->
+                <div class="info-section tagged-items-list" id="tagged-section" style="margin-top: 1.5rem; display: none;">
+                    <h3>Tagged Items</h3>
+                    <div id="tagged-items-list"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Comments Section -->
+        <div id="comments-section" style="margin-top: 2rem;">
+            <div style="background: #111; padding: 2rem; border: 1px solid #222; border-radius: 8px;">
+                <h3 style="margin-bottom: 1.5rem;">
+                    <span>Comments (<span id="comments-count-display">0</span>)</span>
+                </h3>
+
+                <!-- Comment Form -->
+                <div id="comment-form-container">
+                    <form id="comment-form" style="margin-bottom: 2rem;">
+                        <textarea 
+                            id="comment-input" 
+                            placeholder="Add a comment..." 
+                            rows="3" 
+                            style="width: 100%; padding: 0.75rem; background: #000; border: 1px solid #333; color: #fff; font-family: 'Roboto Mono', monospace; resize: vertical;"
+                            maxlength="500"
+                            required
+                        ></textarea>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                            <span id="char-count" style="font-size: 0.75rem; color: #666;">0/500</span>
+                            <button type="submit" id="comment-submit-btn">Post Comment</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Login Prompt -->
+                <div id="login-prompt" style="display: none; text-align: center; padding: 2rem; border: 1px solid #333; margin-bottom: 2rem;">
+                    <p style="color: #666; margin-bottom: 1rem;">Log in to leave a comment</p>
+                    <a href="auth.html" style="background: #000; color: #fff; border: 1px solid #fff; padding: 0.5rem 1.5rem; text-decoration: none; display: inline-block;">Login</a>
+                </div>
+
+                <!-- Comments List -->
+                <div id="comments-list">
+                    <p style="color: #666; text-align: center; padding: 2rem;">Loading comments...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        let currentUser = null;
+        let currentOutfit = null;
+        let tags = [];
+        let likeSystem = null;
+
+        // Get outfit ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const outfitId = urlParams.get('id');
+
+        if (!outfitId) {
+            window.location.href = 'fits.html';
+        }
+
+        // Initialize
+        init();
+        // Comment system instance
+        let commentSystem = null;
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                likeSystem = new LikeSystem(supabaseClient, currentUser);
+            }
+
+            await loadOutfit();
+            if (currentUser) {
+                await updateLikeButton();
+            }
+            
+            // Initialize comment system
+            initComments();
+        }
+
+        function initComments() {
+            // Include the CommentSystem class here or load from external file
+            // For now, I'll provide it inline:
+            
+            class CommentSystem {
+                constructor(supabase, currentUser, itemType, itemId) {
+                    this.supabase = supabase;
+                    this.currentUser = currentUser;
+                    this.itemType = itemType;
+                    this.itemId = itemId;
+                    this.init();
+                }
+
+                async init() {
+                    if (this.currentUser) {
+                        document.getElementById('comment-form-container').style.display = 'block';
+                        document.getElementById('login-prompt').style.display = 'none';
+                        this.setupForm();
+                    } else {
+                        document.getElementById('comment-form-container').style.display = 'none';
+                        document.getElementById('login-prompt').style.display = 'block';
+                    }
+
+                    await this.loadComments();
+                    
+                    document.getElementById('comment-input')?.addEventListener('input', (e) => {
+                        const count = e.target.value.length;
+                        document.getElementById('char-count').textContent = `${count}/500`;
+                    });
+                }
+
+                setupForm() {
+                    document.getElementById('comment-form')?.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await this.postComment();
+                    });
+                }
+
+                async loadComments() {
+                    try {
+                        const { data, error } = await this.supabase
+                            .from('comments')
+                            .select(`
+                                *,
+                                profiles (username, avatar_url)
+                            `)
+                            .eq('commentable_type', this.itemType)
+                            .eq('commentable_id', this.itemId)
+                            .order('created_at', { ascending: false });
+
+                        if (error) throw error;
+                        this.displayComments(data || []);
+                    } catch (error) {
+                        console.error('Error loading comments:', error);
+                    }
+                }
+
+                displayComments(comments) {
+                    const container = document.getElementById('comments-list');
+                    const countDisplay = document.getElementById('comments-count-display');
+                    
+                    countDisplay.textContent = comments.length;
+
+                    if (comments.length === 0) {
+                        container.innerHTML = `
+                            <div class="no-comments">
+                                <p style="font-size: 2rem; margin-bottom: 0.5rem;">💬</p>
+                                <p>No comments yet. Be the first!</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    container.innerHTML = comments.map(comment => {
+                        const isOwner = this.currentUser && this.currentUser.id === comment.user_id;
+                        const timeAgo = this.getTimeAgo(new Date(comment.created_at));
+
+                        return `
+                            <div class="comment-item">
+                                <div class="comment-header">
+                                    <div class="comment-user">
+                                        <img class="comment-avatar" src="${comment.profiles?.avatar_url || 'https://via.placeholder.com/35'}" alt="${comment.profiles?.username}">
+                                        <div>
+                                            <div class="comment-username">@${comment.profiles?.username || 'Unknown'}</div>
+                                            <div class="comment-time">${timeAgo}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="comment-text">${this.escapeHtml(comment.comment_text)}</div>
+                                ${isOwner ? `<div class="comment-actions"><button class="comment-action-btn delete-comment-btn" onclick="commentSystem.deleteComment('${comment.id}')">Delete</button></div>` : ''}
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                async postComment() {
+                    const input = document.getElementById('comment-input');
+                    const text = input.value.trim();
+                    if (!text || text.length > 500) return;
+
+                    const btn = document.getElementById('comment-submit-btn');
+                    btn.disabled = true;
+                    btn.textContent = 'Posting...';
+
+                    try {
+                        const { error } = await this.supabase
+                            .from('comments')
+                            .insert([{
+                                user_id: this.currentUser.id,
+                                commentable_type: this.itemType,
+                                commentable_id: this.itemId,
+                                comment_text: text
+                            }]);
+
+                        if (error) throw error;
+                        input.value = '';
+                        document.getElementById('char-count').textContent = '0/500';
+                        await this.loadComments();
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = 'Post Comment';
+                    }
+                }
+
+                async deleteComment(commentId) {
+                    if (!confirm('Delete this comment?')) return;
+                    try {
+                        await this.supabase.from('comments').delete().eq('id', commentId);
+                        await this.loadComments();
+                    } catch (error) {
+                        alert('Error: ' + error.message);
+                    }
+                }
+
+                getTimeAgo(date) {
+                    const seconds = Math.floor((new Date() - date) / 1000);
+                    const intervals = { year: 31536000, month: 2592000, week: 604800, day: 86400, hour: 3600, minute: 60 };
+                    for (const [unit, secs] of Object.entries(intervals)) {
+                        const interval = Math.floor(seconds / secs);
+                        if (interval >= 1) return `${interval} ${unit}${interval !== 1 ? 's' : ''} ago`;
+                    }
+                    return 'Just now';
+                }
+
+                escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+            }
+
+            // Initialize
+            commentSystem = new CommentSystem(supabaseClient, currentUser, 'outfit', outfitId);
+        }
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                likeSystem = new LikeSystem(supabaseClient, currentUser);
+            }
+
+            await loadOutfit();
+            if (currentUser) {
+                await updateLikeButton();
+            }
+        }
+
+        async function loadOutfit() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('outfits')
+                    .select(`
+                        *,
+                        profiles (username, avatar_url),
+                        outfit_items (
+                            id,
+                            tag_position_x,
+                            tag_position_y,
+                            clothing_items (*)
+                        )
+                    `)
+                    .eq('id', outfitId)
+                    .single();
+
+                if (error) throw error;
+
+                currentOutfit = data;
+                tags = data.outfit_items || [];
+                displayOutfit();
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('outfit-content').style.display = 'grid';
+
+            } catch (error) {
+                console.error('Error loading outfit:', error);
+                document.getElementById('loading').textContent = 'Error loading outfit';
+            }
+        }
+
+        function displayOutfit() {
+            // User info
+            document.getElementById('user-avatar').src = currentOutfit.profiles?.avatar_url || 'https://via.placeholder.com/50';
+            document.getElementById('username').textContent = '@' + (currentOutfit.profiles?.username || 'unknown');
+            document.getElementById('date').textContent = new Date(currentOutfit.created_at).toLocaleDateString();
+
+            // Outfit info
+            document.getElementById('outfit-image').src = currentOutfit.image_url;
+            document.getElementById('outfit-title').textContent = currentOutfit.title;
+            document.getElementById('outfit-description').textContent = currentOutfit.description || '';
+            
+            if (currentOutfit.occasion) {
+                document.getElementById('outfit-occasion').innerHTML = `<strong>Occasion:</strong> ${currentOutfit.occasion}`;
+            }
+            if (currentOutfit.location) {
+                document.getElementById('outfit-location').innerHTML = `<strong>Location:</strong> ${currentOutfit.location}`;
+            }
+
+            // Meta
+            document.getElementById('likes-count').textContent = currentOutfit.likes_count || 0;
+            document.getElementById('comments-count').textContent = currentOutfit.comments_count || 0;
+            document.getElementById('tags-count').textContent = tags.length;
+
+            // Show owner actions if this is user's outfit
+            if (currentUser && currentUser.id === currentOutfit.user_id) {
+                document.getElementById('owner-actions').style.display = 'block';
+            }
+
+            // Render tags
+            renderTags();
+            displayTaggedItems();
+        }
+
+        function renderTags() {
+            const wrapper = document.getElementById('image-wrapper');
+            
+            tags.forEach((tag, index) => {
+                const marker = document.createElement('div');
+                marker.className = 'tag-marker';
+                marker.style.left = tag.tag_position_x + '%';
+                marker.style.top = tag.tag_position_y + '%';
+                marker.textContent = index + 1;
+                marker.dataset.tagIndex = index;
+                
+                marker.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showTagPopup(tag, e.currentTarget);
+                });
+                
+                wrapper.appendChild(marker);
+            });
+        }
+
+        function showTagPopup(tag, markerElement) {
+            const popup = document.getElementById('tag-popup');
+            const item = tag.clothing_items;
+
+            // Close any active markers
+            document.querySelectorAll('.tag-marker').forEach(m => m.classList.remove('active'));
+            markerElement.classList.add('active');
+
+            // Populate popup
+            document.getElementById('popup-image').src = item.image_url;
+            document.getElementById('popup-title').textContent = item.title;
+            document.getElementById('popup-brand').textContent = item.brand || '';
+            document.getElementById('popup-category').textContent = item.category ? item.category.toUpperCase() : '';
+
+            // Position popup
+            const rect = markerElement.getBoundingClientRect();
+            const wrapperRect = document.getElementById('image-wrapper').getBoundingClientRect();
+            
+            popup.style.left = (rect.left - wrapperRect.left + 40) + 'px';
+            popup.style.top = (rect.top - wrapperRect.top) + 'px';
+            
+            popup.classList.add('show');
+        }
+
+        function closePopup() {
+            document.getElementById('tag-popup').classList.remove('show');
+            document.querySelectorAll('.tag-marker').forEach(m => m.classList.remove('active'));
+        }
+
+        function displayTaggedItems() {
+            if (tags.length === 0) return;
+
+            const section = document.getElementById('tagged-section');
+            const container = document.getElementById('tagged-items-list');
+            
+            section.style.display = 'block';
+
+            container.innerHTML = tags.map((tag, index) => {
+                const item = tag.clothing_items;
+                return `
+                    <div class="tagged-item-card" data-tag-index="${index}">
+                        <span style="font-weight: bold; font-size: 1.2rem; color: #666; width: 20px;">${index + 1}</span>
+                        <img src="${item.image_url}" alt="${item.title}">
+                        <div class="tagged-item-info">
+                            <h4>${item.title}</h4>
+                            <p>${item.brand || ''} ${item.category ? '• ' + item.category : ''}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Add click handlers
+            document.querySelectorAll('.tagged-item-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.tagIndex);
+                    const marker = document.querySelector(`.tag-marker[data-tag-index="${index}"]`);
+                    if (marker) {
+                        marker.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        showTagPopup(tags[index], marker);
+                    }
+                });
+            });
+        }
+
+        // Edit tags button
+        document.getElementById('edit-tags-btn')?.addEventListener('click', () => {
+            window.location.href = `tag-outfit.html?id=${outfitId}`;
+        });
+
+        // Delete button
+        document.getElementById('delete-btn')?.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete this outfit?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('outfits')
+                    .delete()
+                    .eq('id', outfitId);
+
+                if (error) throw error;
+
+                alert('Outfit deleted!');
+                window.location.href = 'fits.html';
+
+            } catch (error) {
+                console.error('Error deleting outfit:', error);
+                alert('Error deleting outfit: ' + error.message);
+            }
+        });
+
+        // Like button (placeholder)
+        document.getElementById('like-btn')?.addEventListener('click', async () => {
+            if (!currentUser) {
+                alert('Please log in to like outfits');
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            const btn = document.getElementById('like-btn');
+            btn.disabled = true;
+
+            const result = await likeSystem.toggleLike('outfit', outfitId);
+
+            if (result.success) {
+                await updateLikeButton();
+                // Update count on page
+                const newCount = await likeSystem.getLikeCount('outfit', outfitId);
+                document.getElementById('likes-count').textContent = newCount;
+            } else {
+                alert('Error: ' + result.error);
+            }
+
+            btn.disabled = false;
+        });
+
+        async function updateLikeButton() {
+            const btn = document.getElementById('like-btn');
+            const isLiked = await likeSystem.hasLiked('outfit', outfitId);
+
+            if (isLiked) {
+                btn.classList.add('liked');
+                btn.textContent = '❤️ Liked';
+            } else {
+                btn.classList.remove('liked');
+                btn.textContent = '🤍 Like';
+            }
+        }
+
+        // Close popup when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.tag-marker') && !e.target.closest('.tag-popup')) {
+                closePopup();
+            }
+        });
+    </script>
+</body>
+</html>

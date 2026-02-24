@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Test</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            background: #0a0a0a;
+            color: #fff;
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test {
+            background: #111;
+            border: 1px solid #333;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .success { border-left: 3px solid #0f0; }
+        .error { border-left: 3px solid #f00; }
+        .pending { border-left: 3px solid #ff0; }
+        pre {
+            background: #000;
+            padding: 1rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        button {
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        button:hover {
+            background: #222;
+        }
+        input {
+            background: #000;
+            color: #fff;
+            border: 1px solid #333;
+            padding: 0.5rem;
+            width: 300px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Supabase Connection Test</h1>
+    <p>This page will test your Supabase connection and authentication.</p>
+
+    <!-- Test 1: Config Check -->
+    <div class="test pending" id="test1">
+        <h3>Test 1: Config Check</h3>
+        <p id="test1-status">Testing...</p>
+        <pre id="test1-details"></pre>
+    </div>
+
+    <!-- Test 2: Database Connection -->
+    <div class="test pending" id="test2">
+        <h3>Test 2: Database Connection</h3>
+        <p id="test2-status">Testing...</p>
+        <pre id="test2-details"></pre>
+    </div>
+
+    <!-- Test 3: Auth Service -->
+    <div class="test pending" id="test3">
+        <h3>Test 3: Auth Service Check</h3>
+        <p id="test3-status">Testing...</p>
+        <pre id="test3-details"></pre>
+    </div>
+
+    <!-- Test 4: Sign Up Test -->
+    <div class="test" id="test4">
+        <h3>Test 4: Manual Sign Up Test</h3>
+        <input type="email" id="test-email" placeholder="test@example.com">
+        <input type="password" id="test-password" placeholder="password123">
+        <button id="signup-btn">Test Sign Up</button>
+        <p id="test4-status"></p>
+        <pre id="test4-details"></pre>
+    </div>
+
+    <!-- Test 5: Login Test -->
+    <div class="test" id="test5">
+        <h3>Test 5: Manual Login Test</h3>
+        <input type="email" id="login-email" placeholder="test@example.com">
+        <input type="password" id="login-password" placeholder="password123">
+        <button id="login-btn">Test Login</button>
+        <p id="test5-status"></p>
+        <pre id="test5-details"></pre>
+    </div>
+
+    <!-- Test 6: Check Existing Users -->
+    <div class="test" id="test6">
+        <h3>Test 6: Check Auth Users (Admin)</h3>
+        <button id="check-users-btn">Check Users in Database</button>
+        <p id="test6-status"></p>
+        <pre id="test6-details"></pre>
+    </div>
+
+    <script>
+        let supabaseClient;
+
+        // Run tests on page load
+        window.onload = async function() {
+            await test1_config();
+            await test2_database();
+            await test3_auth();
+
+            // Setup button event listeners
+            document.getElementById('signup-btn').addEventListener('click', testSignup);
+            document.getElementById('login-btn').addEventListener('click', testLogin);
+            document.getElementById('check-users-btn').addEventListener('click', checkUsers);
+        };
+
+        // Test 1: Check Config
+        async function test1_config() {
+            const testDiv = document.getElementById('test1');
+            const status = document.getElementById('test1-status');
+            const details = document.getElementById('test1-details');
+
+            try {
+                // Check if config variables exist
+                if (typeof supabaseUrl === 'undefined') {
+                    throw new Error('supabaseUrl is not defined in config.js');
+                }
+                if (typeof supabaseKey === 'undefined') {
+                    throw new Error('supabaseKey is not defined in config.js');
+                }
+
+                details.textContent = `URL: ${supabaseUrl}\nKey: ${supabaseKey.substring(0, 20)}...`;
+
+                // Initialize Supabase client
+                supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+                if (!supabaseClient) {
+                    throw new Error('Failed to create Supabase client');
+                }
+
+                status.textContent = '✅ Config loaded successfully!';
+                testDiv.className = 'test success';
+            } catch (error) {
+                status.textContent = '❌ Config Error';
+                details.textContent = error.message;
+                testDiv.className = 'test error';
+            }
+        }
+
+        // Test 2: Database Connection
+        async function test2_database() {
+            const testDiv = document.getElementById('test2');
+            const status = document.getElementById('test2-status');
+            const details = document.getElementById('test2-details');
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+
+                // Try to query the profiles table
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('count')
+                    .limit(1);
+
+                if (error) throw error;
+
+                status.textContent = '✅ Database connection works!';
+                details.textContent = JSON.stringify({ data, error }, null, 2);
+                testDiv.className = 'test success';
+            } catch (error) {
+                status.textContent = '❌ Database Error';
+                details.textContent = `Error: ${error.message}\n\nThis might mean:\n- RLS policies are too strict\n- Table doesn't exist\n- Network issue`;
+                testDiv.className = 'test error';
+            }
+        }
+
+        // Test 3: Auth Service
+        async function test3_auth() {
+            const testDiv = document.getElementById('test3');
+            const status = document.getElementById('test3-status');
+            const details = document.getElementById('test3-details');
+
+            try {
+                if (!supabaseClient) {
+                    throw new Error('Supabase client not initialized');
+                }
+
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+                if (error) throw error;
+
+                status.textContent = session ? '✅ Auth works! (You are logged in)' : '✅ Auth works! (Not logged in)';
+                details.textContent = JSON.stringify({ session }, null, 2);
+                testDiv.className = 'test success';
+            } catch (error) {
+                status.textContent = '❌ Auth Error';
+                details.textContent = error.message;
+                testDiv.className = 'test error';
+            }
+        }
+
+        // Test 4: Sign Up
+        async function testSignup() {
+            const testDiv = document.getElementById('test4');
+            const status = document.getElementById('test4-status');
+            const details = document.getElementById('test4-details');
+            
+            const email = document.getElementById('test-email').value;
+            const password = document.getElementById('test-password').value;
+
+            if (!email || !password) {
+                status.textContent = '❌ Please enter email and password';
+                return;
+            }
+
+            status.textContent = '⏳ Testing signup...';
+            testDiv.className = 'test pending';
+
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            username: 'testuser_' + Date.now()
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                status.textContent = '✅ Sign up successful!';
+                details.textContent = JSON.stringify(data, null, 2);
+                testDiv.className = 'test success';
+            } catch (error) {
+                status.textContent = '❌ Sign up failed';
+                details.textContent = `Error: ${error.message}\n\nFull error:\n${JSON.stringify(error, null, 2)}`;
+                testDiv.className = 'test error';
+            }
+        }
+
+        // Test 5: Login
+        async function testLogin() {
+            const testDiv = document.getElementById('test5');
+            const status = document.getElementById('test5-status');
+            const details = document.getElementById('test5-details');
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                status.textContent = '❌ Please enter email and password';
+                return;
+            }
+
+            status.textContent = '⏳ Testing login...';
+            testDiv.className = 'test pending';
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                status.textContent = '✅ Login successful!';
+                details.textContent = JSON.stringify(data, null, 2);
+                testDiv.className = 'test success';
+            } catch (error) {
+                status.textContent = '❌ Login failed';
+                details.textContent = `Error: ${error.message}\n\nCommon reasons:\n- Wrong email/password\n- Email not confirmed\n- User doesn't exist\n\nFull error:\n${JSON.stringify(error, null, 2)}`;
+                testDiv.className = 'test error';
+            }
+        }
+
+        // Test 6: Check users
+        async function checkUsers() {
+            const testDiv = document.getElementById('test6');
+            const status = document.getElementById('test6-status');
+            const details = document.getElementById('test6-details');
+
+            status.textContent = '⏳ Checking database...';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('profiles')
+                    .select('*');
+
+                if (error) throw error;
+
+                status.textContent = `✅ Found ${data.length} user(s) in profiles table`;
+                details.textContent = JSON.stringify(data, null, 2);
+                testDiv.className = 'test success';
+            } catch (error) {
+                status.textContent = '❌ Could not check users';
+                details.textContent = error.message;
+                testDiv.className = 'test error';
+            }
+        }
+    </script>
+</body>
+</html>
