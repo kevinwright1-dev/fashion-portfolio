@@ -23,6 +23,15 @@
 
 ---
 
+## 🚧 Planned Features (In Progress)
+
+* **Social Interaction:** Implementing Like/Unlike and a Comment system for outfits.
+* **Community:** Follow/Unfollow functionality and personalized activity feeds.
+* **Discovery:** Explore page for trending fits and new users.
+* **Analytics:** Cost-per-wear calculator and wardrobe value tracking.
+
+---
+
 ## 🛠 Tech Stack
 
 * **Frontend:** Vanilla JavaScript, HTML5, CSS3 (Dark Theme).
@@ -55,4 +64,7 @@ The system runs on a relational PostgreSQL schema consisting of:
 * `profiles`: User metadata.
 * `clothing_items`: Individual wardrobe pieces.
 * `outfits`: Shared lookbooks.
-* `outfit_items`: Junction table for
+* `outfit_items`: Junction table for the interactive tagging system.
+
+---
+**Built by [Kevin Wright](https://github.com/kevinwright1-dev)**
