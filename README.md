@@ -1,12 +1,12 @@
 # Fashion Portfolio
 
-**A minimalist, full-stack social wardrobe manager.** Inspired by 2010s alternative fashion culture and dark aesthetics.
+A full-stack website serving as a creative portfolio for my personal style. Inspired by the alt 2010s alternative and hip-hop aesthetic of artists like Playboi Carti and Chief Keef.
 
-[**Live Demo**](https://kevinfashion-portfolio.netlify.app/)
+![Site Screenshot](https://i.imgur.com/m8r6w7W.png)
 
 ---
 
-## ✅ Completed Features
+[View the live site here](https://kevinfashion-portfolio.netlify.app/)
 
 ### **User System**
 * **Authentication:** Full email/password flow via Supabase (Signup, Login, Password Reset).
@@ -21,7 +21,10 @@
 * **Visual Markers:** Interactive, numbered tag indicators on outfit photos.
 * **Outfit Details:** Dedicated pages showing full outfit descriptions, occasion details, and clickable item previews.
 
----
+*   **Frontend:** HTML5, CSS, JavaScript
+*   **Backend & Database:** Supabase 
+*   **Deployment:** Netlify
+*   **Font:** Roboto Mono 
 
 ## 🚧 Planned Features (In Progress)
 
