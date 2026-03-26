@@ -27,15 +27,24 @@
 <script src="config.js"></script>
 <script>
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    const profileLink = document.getElementById('profile-link');
+    const authLink = document.getElementById('auth-link');
 
     // Check if user is logged in and update nav
     supabase.auth.getSession().then(({ data: { session } }) => {
         if (session) {
-            const nav = document.querySelector('nav');
-            nav.innerHTML += '<a href="profile.html">PROFILE</a><a href="#" onclick="logout()">LOGOUT</a>';
+            profileLink.style.display = 'inline';
+            authLink.textContent = 'LOGOUT';
+            authLink.href = '#';
+            authLink.addEventListener('click', async (event) => {
+                event.preventDefault();
+                await logout();
+            });
         } else {
-            const nav = document.querySelector('nav');
-            nav.innerHTML += '<a href="auth.html">LOGIN</a>';
+            profileLink.style.display = 'none';
+            authLink.style.display = 'inline';
+            authLink.textContent = 'LOGIN';
+            authLink.href = 'auth.html';
         }
     });
 

@@ -96,6 +96,12 @@
         <button class="filter-btn" data-category="accessories">Accessories</button>
         <button class="filter-btn" data-category="outerwear">Outerwear</button>
         <button class="filter-btn" data-category="other">Other</button>
+        <input
+            type="search"
+            id="closet-search"
+            placeholder="Search item or brand..."
+            style="margin-left:auto; min-width:240px; max-width:360px;"
+        >
     </div>
 
     <div id="loading" style="text-align: center; padding: 2rem; color: #666;">
@@ -137,6 +143,7 @@
 
             // Setup filter buttons
             setupFilters();
+            document.getElementById('closet-search').addEventListener('input', applyFilters);
         }
 
         async function loadItems() {
@@ -199,18 +206,23 @@
 
                     // Filter items
                     currentFilter = this.dataset.category;
-                    filterItems(currentFilter);
+                    applyFilters();
                 });
             });
         }
 
-        function filterItems(category) {
-            if (category === 'all') {
-                displayItems(allItems);
-            } else {
-                const filtered = allItems.filter(item => item.category === category);
-                displayItems(filtered);
-            }
+        function applyFilters() {
+            const searchText = document.getElementById('closet-search').value.trim().toLowerCase();
+
+            const filtered = allItems.filter((item) => {
+                const categoryPass = currentFilter === 'all' || item.category === currentFilter;
+                const title = (item.title || '').toLowerCase();
+                const brand = (item.brand || '').toLowerCase();
+                const searchPass = !searchText || title.includes(searchText) || brand.includes(searchText);
+                return categoryPass && searchPass;
+            });
+
+            displayItems(filtered);
         }
 
         function viewItem(itemId) {

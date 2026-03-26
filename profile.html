@@ -214,7 +214,7 @@
 
             container.innerHTML = outfits.map(outfit => `
                 <div class="gallery-item">
-                    <img src="${outfit.image_url}" alt="${outfit.title}">
+                    <img src="${outfit.image_url}" alt="${outfit.title}" style="cursor:pointer;" onclick="window.location.href='outfit-detail.html?id=${outfit.id}'">
                     <p>${outfit.title}</p>
                     <p style="font-size: 0.8rem; color: #666;">❤️ ${outfit.likes_count} 💬 ${outfit.comments_count}</p>
                 </div>

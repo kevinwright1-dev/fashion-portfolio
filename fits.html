@@ -31,6 +31,42 @@
             background: #222;
         }
 
+        .filters {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: transparent;
+            color: #666;
+            border: 1px solid #333;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .filter-btn.active {
+            background: #fff;
+            color: #000;
+            border-color: #fff;
+        }
+
+        .filter-btn:hover {
+            border-color: #999;
+            color: #999;
+        }
+
+        #fit-search {
+            margin-left: auto;
+            min-width: 240px;
+            max-width: 360px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 4rem 2rem;
@@ -40,7 +76,7 @@
         .empty-state p {
             margin-bottom: 2rem;
         }
-        /* Modal Styles */
+
         .modal {
             position: fixed;
             top: 0;
@@ -91,6 +127,15 @@
         .modal-close:hover {
             background: #ff4444;
         }
+
+        @media (max-width: 768px) {
+            #fit-search {
+                margin-left: 0;
+                width: 100%;
+                max-width: none;
+                min-width: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -109,25 +154,29 @@
         <a href="add-outfit.html" class="add-outfit-btn" id="add-outfit-btn" style="display:none;">+ Share Fit</a>
     </div>
 
+    <div class="filters">
+        <button class="filter-btn active" data-feed="all">All Fits</button>
+        <button class="filter-btn" data-feed="mine" id="my-fits-filter" style="display:none;">My Fits</button>
+        <input type="search" id="fit-search" placeholder="Search title or username...">
+    </div>
+
     <div id="loading" style="text-align: center; padding: 2rem; color: #666;">
         Loading fits...
     </div>
 
     <div class="gallery" id="outfits-gallery" style="display: none;">
-        <!-- Outfits will be loaded here -->
     </div>
 
     <div id="empty-state" class="empty-state" style="display: none;">
-        <p style="font-size: 3rem;">👔</p>
+        <p style="font-size: 3rem;">&#128084;</p>
         <p>No fits yet</p>
         <a href="add-outfit.html" class="add-outfit-btn">Share Your First Fit</a>
     </div>
-    <!-- Modal Overlay -->
+
     <div id="outfit-modal" class="modal" style="display: none;">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
-            <button class="modal-close" id="close-modal-btn">×</button>
-            
+            <button class="modal-close" id="close-modal-btn">&times;</button>
             <div id="modal-body">
                 <p style="text-align: center; padding: 3rem; color: #666;">Loading...</p>
             </div>
@@ -138,34 +187,36 @@
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         let currentUser = null;
         let allOutfits = [];
+        let activeFeed = 'all';
 
-        // Initialize
         init();
-        
-        // Setup modal close button
-        document.getElementById('close-modal-btn').addEventListener('click', closeModal);
 
-        // Close modal when clicking backdrop
+        document.getElementById('close-modal-btn').addEventListener('click', closeModal);
         document.querySelector('.modal-backdrop')?.addEventListener('click', closeModal);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
 
         async function init() {
-            // Check auth
             const { data: { session } } = await supabaseClient.auth.getSession();
-            
+
             if (session) {
                 currentUser = session.user;
                 document.getElementById('profile-link').style.display = 'inline';
                 document.getElementById('add-outfit-btn').style.display = 'inline-block';
                 document.getElementById('auth-link').style.display = 'none';
+                document.getElementById('my-fits-filter').style.display = 'inline-block';
             }
 
-            // Load outfits
+            setupFilters();
             await loadOutfits();
         }
 
         async function loadOutfits() {
             try {
-                let query = supabaseClient
+                const { data, error } = await supabaseClient
                     .from('outfits')
                     .select(`
                         *,
@@ -179,25 +230,43 @@
                     `)
                     .order('created_at', { ascending: false });
 
-                // If user is logged in, show only their outfits
-                // Otherwise show all public outfits
-                if (currentUser) {
-                    query = query.eq('user_id', currentUser.id);
-                }
-
-                const { data, error } = await query;
-
                 if (error) throw error;
 
                 allOutfits = data || [];
-                displayOutfits(allOutfits);
+                applyCurrentFilters();
 
                 document.getElementById('loading').style.display = 'none';
-
             } catch (error) {
                 console.error('Error loading outfits:', error);
                 document.getElementById('loading').textContent = 'Error loading outfits';
             }
+        }
+
+        function setupFilters() {
+            document.querySelectorAll('.filter-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach((node) => node.classList.remove('active'));
+                    btn.classList.add('active');
+                    activeFeed = btn.dataset.feed;
+                    applyCurrentFilters();
+                });
+            });
+
+            document.getElementById('fit-search').addEventListener('input', applyCurrentFilters);
+        }
+
+        function applyCurrentFilters() {
+            const searchText = document.getElementById('fit-search').value.trim().toLowerCase();
+
+            const filtered = allOutfits.filter((outfit) => {
+                const username = (outfit.profiles?.username || '').toLowerCase();
+                const title = (outfit.title || '').toLowerCase();
+                const minePass = activeFeed !== 'mine' || (currentUser && outfit.user_id === currentUser.id);
+                const searchPass = !searchText || username.includes(searchText) || title.includes(searchText);
+                return minePass && searchPass;
+            });
+
+            displayOutfits(filtered);
         }
 
         function displayOutfits(outfits) {
@@ -216,17 +285,17 @@
             gallery.innerHTML = outfits.map(outfit => {
                 const tagCount = outfit.outfit_items ? outfit.outfit_items.length : 0;
                 const username = outfit.profiles ? outfit.profiles.username : 'Unknown';
-                
+
                 return `
                     <div class="gallery-item">
                         <img src="${outfit.image_url}" alt="${outfit.title}" onclick="viewOutfit('${outfit.id}')">
                         <p><strong>${outfit.title}</strong></p>
                         <p style="font-size: 0.75rem; color: #999;">by @${username}</p>
                         <p style="font-size: 0.75rem; color: #666;">
-                            ${tagCount > 0 ? `🏷️ ${tagCount} items tagged` : 'No items tagged'}
+                            ${tagCount > 0 ? `${tagCount} item${tagCount === 1 ? '' : 's'} tagged` : 'No items tagged'}
                         </p>
                         <p style="font-size: 0.75rem; color: #666;">
-                            ❤️ ${outfit.likes_count || 0} 💬 ${outfit.comments_count || 0}
+                            Likes: ${outfit.likes_count || 0} | Comments: ${outfit.comments_count || 0}
                         </p>
                     </div>
                 `;
@@ -234,23 +303,33 @@
         }
 
         function viewOutfit(outfitId) {
-            console.log('Opening outfit:', outfitId);
             openModal(outfitId);
         }
 
         function openModal(outfitId) {
             const modal = document.getElementById('outfit-modal');
             modal.style.display = 'block';
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
-            
-            // Load the outfit details
+            document.body.style.overflow = 'hidden';
             loadOutfitDetail(outfitId);
         }
 
+        function loadOutfitDetail(outfitId) {
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <iframe
+                    src="outfit-detail.html?id=${encodeURIComponent(outfitId)}"
+                    title="Outfit Detail"
+                    style="width:100%; height:85vh; border:none; background:#111;"
+                    loading="lazy"
+                ></iframe>
+            `;
+        }
+
         function closeModal() {
-        const modal = document.getElementById('outfit-modal');
-        modal.style.display = 'none';
-        document.body.style.overflow = 'auto'; // Re-enable scrolling
+            const modal = document.getElementById('outfit-modal');
+            modal.style.display = 'none';
+            document.getElementById('modal-body').innerHTML = '<p style="text-align: center; padding: 3rem; color: #666;">Loading...</p>';
+            document.body.style.overflow = 'auto';
         }
     </script>
 </body>

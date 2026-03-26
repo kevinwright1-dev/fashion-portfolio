@@ -695,19 +695,6 @@
             commentSystem = new CommentSystem(supabaseClient, currentUser, 'outfit', outfitId);
         }
 
-        async function init() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                likeSystem = new LikeSystem(supabaseClient, currentUser);
-            }
-
-            await loadOutfit();
-            if (currentUser) {
-                await updateLikeButton();
-            }
-        }
-
         async function loadOutfit() {
             try {
                 const { data, error } = await supabaseClient
@@ -775,8 +762,10 @@
 
         function renderTags() {
             const wrapper = document.getElementById('image-wrapper');
+            wrapper.querySelectorAll('.tag-marker').forEach((marker) => marker.remove());
             
             tags.forEach((tag, index) => {
+                if (!tag.clothing_items) return;
                 const marker = document.createElement('div');
                 marker.className = 'tag-marker';
                 marker.style.left = tag.tag_position_x + '%';
@@ -796,6 +785,7 @@
         function showTagPopup(tag, markerElement) {
             const popup = document.getElementById('tag-popup');
             const item = tag.clothing_items;
+            if (!item) return;
 
             // Close any active markers
             document.querySelectorAll('.tag-marker').forEach(m => m.classList.remove('active'));
@@ -832,6 +822,7 @@
 
             container.innerHTML = tags.map((tag, index) => {
                 const item = tag.clothing_items;
+                if (!item) return '';
                 return `
                     <div class="tagged-item-card" data-tag-index="${index}">
                         <span style="font-weight: bold; font-size: 1.2rem; color: #666; width: 20px;">${index + 1}</span>
