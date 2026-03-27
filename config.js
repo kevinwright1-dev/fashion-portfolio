@@ -1,0 +1,2 @@
+const supabaseUrl = 'https://ojvgbpqmtpyxhgprtejn.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qdmdicHFtdHB5eGhncHJ0ZWpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMzgyNTMsImV4cCI6MjA3MzgxNDI1M30.018oJQXRyaeBWoyENvfM4DOvtIkOAcHlqLIlX1ChSXI';
