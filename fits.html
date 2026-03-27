@@ -250,9 +250,21 @@
         function closeModal() {
         const modal = document.getElementById('outfit-modal');
         modal.style.display = 'none';
+        document.getElementById('modal-body').innerHTML = '<p style="text-align: center; padding: 3rem; color: #666;">Loading...</p>';
         document.body.style.overflow = 'auto'; // Re-enable scrolling
         }
-        async function loadOutfitDetail(outfitId) {}
+
+        function loadOutfitDetail(outfitId) {
+            const modalBody = document.getElementById('modal-body');
+            modalBody.innerHTML = `
+                <iframe
+                    src="outfit-detail.html?id=${encodeURIComponent(outfitId)}"
+                    title="Outfit Detail"
+                    style="width: 100%; height: 85vh; border: none; background: #111;"
+                    loading="lazy"
+                ></iframe>
+            `;
+        }
     </script>
 </body>
 </html>
