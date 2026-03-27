@@ -595,22 +595,42 @@
                     try {
                         const { data, error } = await this.supabase
                             .from('comments')
-                            .select(`
-                                *,
-                                profiles (username, avatar_url)
-                            `)
+                            .select('*')
                             .eq('commentable_type', this.itemType)
                             .eq('commentable_id', this.itemId)
                             .order('created_at', { ascending: false });
 
                         if (error) throw error;
-                        this.displayComments(data || []);
+                        const comments = data || [];
+                        const profileMap = await this.loadProfiles(comments);
+                        this.displayComments(comments, profileMap);
                     } catch (error) {
                         console.error('Error loading comments:', error);
                     }
                 }
 
-                displayComments(comments) {
+                async loadProfiles(comments) {
+                    const userIds = [...new Set(
+                        comments
+                            .map((comment) => comment.user_id)
+                            .filter(Boolean)
+                    )];
+
+                    if (userIds.length === 0) {
+                        return new Map();
+                    }
+
+                    const { data, error } = await this.supabase
+                        .from('profiles')
+                        .select('id, username, avatar_url')
+                        .in('id', userIds);
+
+                    if (error) throw error;
+
+                    return new Map((data || []).map((profile) => [profile.id, profile]));
+                }
+
+                displayComments(comments, profileMap = new Map()) {
                     const container = document.getElementById('comments-list');
                     const countDisplay = document.getElementById('comments-count-display');
                     
@@ -629,14 +649,17 @@
                     container.innerHTML = comments.map(comment => {
                         const isOwner = this.currentUser && this.currentUser.id === comment.user_id;
                         const timeAgo = this.getTimeAgo(new Date(comment.created_at));
+                        const profile = profileMap.get(comment.user_id);
+                        const avatarUrl = profile?.avatar_url || 'https://via.placeholder.com/35';
+                        const username = profile?.username || 'Unknown';
 
                         return `
                             <div class="comment-item">
                                 <div class="comment-header">
                                     <div class="comment-user">
-                                        <img class="comment-avatar" src="${comment.profiles?.avatar_url || 'https://via.placeholder.com/35'}" alt="${comment.profiles?.username}">
+                                        <img class="comment-avatar" src="${avatarUrl}" alt="${username}">
                                         <div>
-                                            <div class="comment-username">@${comment.profiles?.username || 'Unknown'}</div>
+                                            <div class="comment-username">@${username}</div>
                                             <div class="comment-time">${timeAgo}</div>
                                         </div>
                                     </div>

@@ -512,10 +512,7 @@
             try {
                 const { data, error } = await supabaseClient
                     .from('comments')
-                    .select(`
-                        *,
-                        profiles (username, avatar_url)
-                    `)
+                    .select('*')
                     .eq('commentable_type', BOARD_TYPE)
                     .eq('commentable_id', BOARD_ID)
                     .order('created_at', { ascending: false });
@@ -524,7 +521,9 @@
                     throw error;
                 }
 
-                renderComments(data || []);
+                const comments = data || [];
+                const profileMap = await loadProfilesForComments(comments);
+                renderComments(comments, profileMap);
             } catch (error) {
                 console.error('Error loading board comments:', error);
                 commentsList.innerHTML = '<div class="empty-thread">Could not load the board right now.</div>';
@@ -533,7 +532,30 @@
             }
         }
 
-        function renderComments(comments) {
+        async function loadProfilesForComments(comments) {
+            const userIds = [...new Set(
+                comments
+                    .map((comment) => comment.user_id)
+                    .filter(Boolean)
+            )];
+
+            if (userIds.length === 0) {
+                return new Map();
+            }
+
+            const { data, error } = await supabaseClient
+                .from('profiles')
+                .select('id, username, avatar_url')
+                .in('id', userIds);
+
+            if (error) {
+                throw error;
+            }
+
+            return new Map((data || []).map((profile) => [profile.id, profile]));
+        }
+
+        function renderComments(comments, profileMap = new Map()) {
             messageCount.textContent = String(comments.length);
             latestActivity.textContent = comments[0] ? formatTimestamp(comments[0].created_at) : 'No posts yet';
 
@@ -543,8 +565,9 @@
             }
 
             commentsList.innerHTML = comments.map((comment) => {
-                const username = comment.profiles?.username || 'unknown';
-                const avatar = comment.profiles?.avatar_url || 'https://via.placeholder.com/52';
+                const profile = profileMap.get(comment.user_id);
+                const username = profile?.username || 'unknown';
+                const avatar = profile?.avatar_url || 'https://via.placeholder.com/52';
                 const isOwner = currentUser && currentUser.id === comment.user_id;
 
                 return `
