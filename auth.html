@@ -155,6 +155,12 @@
     <script>
         // Initialize Supabase client
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+        const postAuthRedirect = redirectParam || 'profile.html';
+
+        function goAfterAuth() {
+            window.location.href = postAuthRedirect;
+        }
 
         // Check if user is already logged in
         checkAuthStatus();
@@ -162,7 +168,7 @@
         async function checkAuthStatus() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
-                window.location.href = 'profile.html';
+                goAfterAuth();
             }
         }
 
@@ -259,7 +265,7 @@
                 form.reset();
 
                 setTimeout(() => {
-                    window.location.href = 'profile.html';
+                    goAfterAuth();
                 }, 2000);
 
             } catch (error) {
@@ -300,7 +306,7 @@
                 showSuccess('Login successful! Redirecting...');
                 
                 setTimeout(() => {
-                    window.location.href = 'profile.html';
+                    goAfterAuth();
                 }, 1000);
 
             } catch (error) {
@@ -336,7 +342,7 @@
         supabaseClient.auth.onAuthStateChange((event, session) => {
             console.log('Auth state changed:', event);
             if (event === 'SIGNED_IN') {
-                window.location.href = 'profile.html';
+                goAfterAuth();
             }
         });
     </script>

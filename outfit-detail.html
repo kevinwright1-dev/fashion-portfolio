@@ -375,14 +375,7 @@
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">HOME</a>
-        <a href="closet.html">CLOSET</a>
-        <a href="fits.html">FIT</a>
-        <a href="inspo.html">INSPO</a>
-        <a href="guestbook.html">COMMENTS</a>
-        <a href="profile.html">PROFILE</a>
-    </nav>
+
 
     <div class="outfit-detail-container">
         <a href="fits.html" class="back-link">← Back to Fits</a>
@@ -491,7 +484,7 @@
                 <!-- Login Prompt -->
                 <div id="login-prompt" style="display: none; text-align: center; padding: 2rem; border: 1px solid #333; margin-bottom: 2rem;">
                     <p style="color: #666; margin-bottom: 1rem;">Log in to leave a comment</p>
-                    <a href="auth.html" style="background: #000; color: #fff; border: 1px solid #fff; padding: 0.5rem 1.5rem; text-decoration: none; display: inline-block;">Login</a>
+                    <a href="#" id="login-link" style="background: #000; color: #fff; border: 1px solid #fff; padding: 0.5rem 1.5rem; text-decoration: none; display: inline-block;">Login</a>
                 </div>
 
                 <!-- Comments List -->
@@ -516,6 +509,28 @@
         if (!outfitId) {
             window.location.href = 'fits.html';
         }
+
+        const returnUrl = `outfit-detail.html?id=${encodeURIComponent(outfitId)}`;
+
+        function getAuthUrl() {
+            return `auth.html?redirect=${encodeURIComponent(returnUrl)}`;
+        }
+
+        function goToAuth() {
+            const authUrl = getAuthUrl();
+
+            if (window.top && window.top !== window) {
+                window.top.location.href = authUrl;
+                return;
+            }
+
+            window.location.href = authUrl;
+        }
+
+        document.getElementById('login-link')?.addEventListener('click', (event) => {
+            event.preventDefault();
+            goToAuth();
+        });
 
         // Initialize
         init();
@@ -878,7 +893,7 @@
         document.getElementById('like-btn')?.addEventListener('click', async () => {
             if (!currentUser) {
                 alert('Please log in to like outfits');
-                window.location.href = 'auth.html';
+                goToAuth();
                 return;
             }
 

@@ -3,16 +3,298 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GUESTBOOK - KEV'S WORLD</title>
+    <title>COMMENTS - KEV'S WORLD</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Load the Supabase client library -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <!-- Load our config FIRST -->
     <script src="config.js"></script>
-    <script>
-    // Load config first
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    </script>
+    <style>
+        .board-shell {
+            max-width: 1080px;
+            margin: 0 auto;
+        }
+
+        .board-hero {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .board-intro,
+        .board-meta,
+        .composer-card,
+        .thread-card {
+            background: rgba(17, 17, 17, 0.96);
+            border: 1px solid #222;
+        }
+
+        .board-intro {
+            padding: 2rem;
+        }
+
+        .board-kicker {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .board-intro h1 {
+            text-align: left;
+            margin: 0 0 1rem 0;
+            font-size: clamp(2rem, 4vw, 3.4rem);
+            letter-spacing: 7px;
+        }
+
+        .board-intro p {
+            color: #aaa;
+            max-width: 40rem;
+            margin: 0;
+        }
+
+        .board-meta {
+            padding: 2rem;
+            display: grid;
+            align-content: space-between;
+            gap: 1.25rem;
+        }
+
+        .meta-stat {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .meta-stat:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .meta-label {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 0.35rem;
+        }
+
+        .meta-value {
+            font-size: 1.8rem;
+            color: #fff;
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: 320px minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .composer-card {
+            padding: 1.5rem;
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .card-label {
+            display: block;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .composer-title {
+            font-size: 1.15rem;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .composer-copy {
+            color: #999;
+            font-size: 0.9rem;
+            margin: 0 0 1.25rem 0;
+        }
+
+        .composer-card textarea {
+            min-height: 150px;
+            margin-bottom: 0.75rem;
+        }
+
+        .composer-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .char-counter {
+            color: #666;
+            font-size: 0.75rem;
+        }
+
+        .login-panel,
+        .status-banner,
+        .empty-thread {
+            border: 1px solid #222;
+            background: #0d0d0d;
+        }
+
+        .login-panel {
+            padding: 1rem;
+        }
+
+        .login-panel p {
+            color: #999;
+            margin: 0 0 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .login-panel a {
+            color: #fff;
+            text-decoration: none;
+            display: inline-block;
+            border: 1px solid #fff;
+            padding: 0.65rem 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .login-panel a:hover {
+            background: #1c1c1c;
+        }
+
+        .status-banner {
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            color: #999;
+            font-size: 0.85rem;
+        }
+
+        .status-banner.error {
+            border-color: #5a1f1f;
+            color: #ff8f8f;
+        }
+
+        .thread-card {
+            padding: 1.25rem;
+        }
+
+        .thread-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .thread-header h2 {
+            margin: 0;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 400;
+        }
+
+        .thread-subtitle {
+            color: #666;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .comment-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .comment-entry {
+            display: grid;
+            grid-template-columns: 52px minmax(0, 1fr);
+            gap: 1rem;
+            background: linear-gradient(180deg, #111 0%, #0c0c0c 100%);
+            border: 1px solid #1f1f1f;
+            padding: 1rem;
+        }
+
+        .comment-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #333;
+            background: #000;
+        }
+
+        .comment-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-user {
+            font-size: 0.95rem;
+            color: #fff;
+        }
+
+        .comment-time {
+            color: #666;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .comment-body {
+            color: #cfcfcf;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.92rem;
+        }
+
+        .comment-delete {
+            margin-top: 0.85rem;
+            background: transparent;
+            border: 1px solid #4b2020;
+            color: #ff8f8f;
+            padding: 0.45rem 0.85rem;
+            font-size: 0.75rem;
+        }
+
+        .comment-delete:hover {
+            background: #281313;
+        }
+
+        .empty-thread {
+            padding: 3rem 1.5rem;
+            text-align: center;
+            color: #777;
+        }
+
+        @media (max-width: 900px) {
+            .board-hero,
+            .board-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .composer-card {
+                position: static;
+            }
+
+            .thread-header,
+            .comment-topline,
+            .composer-footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
 </head>
 <body>
     <nav>
@@ -25,88 +307,363 @@
         <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <h1>COMMENTS</h1>
+    <main class="board-shell">
+        <section class="board-hero">
+            <div class="board-intro">
+                <div class="board-kicker">Community Thread</div>
+                <h1>Message Board</h1>
+                <p>Drop thoughts, talk fashion, react to the site, or just leave a note. Same world, same energy, just more conversational.</p>
+            </div>
 
-    <form id="comment-form">
-        <label for="author">Name:</label>
-        <input type="text" id="author" name="author" required>
+            <aside class="board-meta">
+                <div class="meta-stat">
+                    <span class="meta-label">Thread Type</span>
+                    <span class="meta-value">Open Board</span>
+                </div>
+                <div class="meta-stat">
+                    <span class="meta-label">Messages</span>
+                    <span class="meta-value" id="message-count">0</span>
+                </div>
+                <div class="meta-stat">
+                    <span class="meta-label">Latest Activity</span>
+                    <span class="meta-value" id="latest-activity" style="font-size: 1rem; color: #bbb;">Waiting...</span>
+                </div>
+            </aside>
+        </section>
 
-        <label for="comment_text">Comment:</label>
-        <textarea id="comment_text" name="comment_text" rows="4" required></textarea>
+        <section class="board-grid">
+            <aside class="composer-card">
+                <span class="card-label">Write Something</span>
+                <h2 class="composer-title">Add To The Board</h2>
+                <p class="composer-copy" id="composer-copy">Sign in to post and keep the board connected to real profiles.</p>
 
-        <button type="submit">POST COMMENT</button>
-    </form>
+                <div id="status-banner" class="status-banner" style="display:none;"></div>
 
-    <div id="comments">
-        <!-- Comments will be loaded here by JavaScript -->
-    </div>
+                <form id="comment-form" style="display:none;">
+                    <label for="comment_text">Message</label>
+                    <textarea id="comment_text" name="comment_text" maxlength="500" placeholder="Say something memorable..." required></textarea>
+                    <div class="composer-footer">
+                        <span class="char-counter" id="char-count">0 / 500</span>
+                        <button type="submit" id="submit-btn">Post Message</button>
+                    </div>
+                </form>
+
+                <div id="login-panel" class="login-panel" style="display:none;">
+                    <p>You need an account to post on the board.</p>
+                    <a id="login-link" href="auth.html?redirect=guestbook.html">Login / Sign Up</a>
+                </div>
+            </aside>
+
+            <section class="thread-card">
+                <div class="thread-header">
+                    <h2>Latest Posts</h2>
+                    <div class="thread-subtitle">Public board feed</div>
+                </div>
+
+                <div id="comments-list" class="comment-list">
+                    <div class="empty-thread">Loading messages...</div>
+                </div>
+            </section>
+        </section>
+    </main>
 
     <script>
-        // Function to load and display comments
-        async function loadComments() {
-            const commentsContainer = document.getElementById('comments');
-            commentsContainer.innerHTML = "<p>Loading comments...</p>";
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const BOARD_TYPE = 'guestbook';
+        const BOARD_ID = '00000000-0000-0000-0000-000000000001';
 
-            // Fetch comments from Supabase, order by newest first
-            const { data, error } = await supabase
-                .from('comments')
-                .select('*')
-                .order('created_at', { ascending: false });
+        let currentUser = null;
 
-            if (error) {
-                console.error('Error loading comments:', error);
-                commentsContainer.innerHTML = "<p>Could not load comments.</p>";
-                return;
+        const profileLink = document.getElementById('profile-link');
+        const authLink = document.getElementById('auth-link');
+        const commentForm = document.getElementById('comment-form');
+        const loginPanel = document.getElementById('login-panel');
+        const commentsList = document.getElementById('comments-list');
+        const charCount = document.getElementById('char-count');
+        const commentInput = document.getElementById('comment_text');
+        const messageCount = document.getElementById('message-count');
+        const latestActivity = document.getElementById('latest-activity');
+        const composerCopy = document.getElementById('composer-copy');
+        const statusBanner = document.getElementById('status-banner');
+        const submitBtn = document.getElementById('submit-btn');
+
+        init();
+
+        async function init() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
+
+            if (currentUser) {
+                await ensureProfileExists();
             }
 
-            if (data.length === 0) {
-                commentsContainer.innerHTML = "<p>No comments yet. Be the first.</p>";
-                return;
-            }
+            updateNav();
+            updateComposerState();
+            setupEvents();
+            await loadBoardComments();
+        }
 
-            // Clear the loading message
-            commentsContainer.innerHTML = '';
+        function setupEvents() {
+            commentInput.addEventListener('input', () => {
+                charCount.textContent = `${commentInput.value.length} / 500`;
+            });
 
-            // Display each comment
-            data.forEach(comment => {
-                const commentEl = document.createElement('div');
-                commentEl.className = 'comment';
-                commentEl.innerHTML = `
-                    <div class="author">${comment.author}</div>
-                    <div class="text">${comment.comment_text}</div>
-                    <div style="color: #555; font-size: 0.7rem; margin-top: 0.5rem;">${new Date(comment.created_at).toLocaleString()}</div>
-                `;
-                commentsContainer.appendChild(commentEl);
+            commentForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                await postMessage();
+            });
+
+            supabaseClient.auth.onAuthStateChange(async (_event, session) => {
+                currentUser = session?.user || null;
+                if (currentUser) {
+                    await ensureProfileExists();
+                }
+                updateNav();
+                updateComposerState();
+                await loadBoardComments();
             });
         }
 
-        // Function to handle form submission
-        document.getElementById('comment-form').addEventListener('submit', async (e) => {
-            e.preventDefault(); // Stop the form from refreshing the page
-
-            const form = e.target;
-            const formData = new FormData(form);
-            const author = formData.get('author');
-            const comment_text = formData.get('comment_text');
-
-            // Insert the new comment into the database
-            const { data, error } = await supabase
-                .from('comments')
-                .insert([{ author, comment_text }]);
-
-            if (error) {
-                alert('Error posting comment: ' + error.message);
-            } else {
-                // Success! Clear the form and reload comments
-                form.reset();
-                loadComments();
-                alert('Comment posted!');
+        async function ensureProfileExists() {
+            if (!currentUser) {
+                return;
             }
-        });
 
-        // Load comments when the page opens
-        loadComments();
+            const { data: profile, error } = await supabaseClient
+                .from('profiles')
+                .select('id')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (profile) {
+                return;
+            }
+
+            if (error && error.code !== 'PGRST116') {
+                throw error;
+            }
+
+            const fallbackUsernameBase = (currentUser.email || 'user')
+                .split('@')[0]
+                .replace(/[^a-zA-Z0-9_]/g, '_')
+                .slice(0, 20);
+
+            const username = `${fallbackUsernameBase || 'user'}_${Date.now()}`;
+
+            const { error: createError } = await supabaseClient
+                .from('profiles')
+                .insert([{
+                    id: currentUser.id,
+                    username,
+                    full_name: currentUser.user_metadata?.full_name || '',
+                    avatar_url: currentUser.user_metadata?.avatar_url || 'https://via.placeholder.com/150'
+                }]);
+
+            if (createError) {
+                throw createError;
+            }
+        }
+
+        function updateNav() {
+            if (currentUser) {
+                profileLink.style.display = 'inline';
+                authLink.textContent = 'LOGOUT';
+                authLink.href = '#';
+                authLink.onclick = async (event) => {
+                    event.preventDefault();
+                    await supabaseClient.auth.signOut();
+                    window.location.reload();
+                };
+            } else {
+                profileLink.style.display = 'none';
+                authLink.textContent = 'LOGIN';
+                authLink.href = 'auth.html?redirect=guestbook.html';
+                authLink.onclick = null;
+            }
+        }
+
+        function updateComposerState() {
+            if (currentUser) {
+                commentForm.style.display = 'block';
+                loginPanel.style.display = 'none';
+                composerCopy.textContent = 'Leave a message under your profile and keep the board moving.';
+            } else {
+                commentForm.style.display = 'none';
+                loginPanel.style.display = 'block';
+                composerCopy.textContent = 'Sign in to post and keep the board connected to real profiles.';
+            }
+        }
+
+        function showStatus(message, isError = false) {
+            statusBanner.textContent = message;
+            statusBanner.className = isError ? 'status-banner error' : 'status-banner';
+            statusBanner.style.display = 'block';
+        }
+
+        function clearStatus() {
+            statusBanner.style.display = 'none';
+            statusBanner.textContent = '';
+            statusBanner.className = 'status-banner';
+        }
+
+        async function loadBoardComments() {
+            commentsList.innerHTML = '<div class="empty-thread">Loading messages...</div>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('comments')
+                    .select(`
+                        *,
+                        profiles (username, avatar_url)
+                    `)
+                    .eq('commentable_type', BOARD_TYPE)
+                    .eq('commentable_id', BOARD_ID)
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    throw error;
+                }
+
+                renderComments(data || []);
+            } catch (error) {
+                console.error('Error loading board comments:', error);
+                commentsList.innerHTML = '<div class="empty-thread">Could not load the board right now.</div>';
+                messageCount.textContent = '0';
+                latestActivity.textContent = 'Unavailable';
+            }
+        }
+
+        function renderComments(comments) {
+            messageCount.textContent = String(comments.length);
+            latestActivity.textContent = comments[0] ? formatTimestamp(comments[0].created_at) : 'No posts yet';
+
+            if (comments.length === 0) {
+                commentsList.innerHTML = '<div class="empty-thread">No messages yet. Start the thread.</div>';
+                return;
+            }
+
+            commentsList.innerHTML = comments.map((comment) => {
+                const username = comment.profiles?.username || 'unknown';
+                const avatar = comment.profiles?.avatar_url || 'https://via.placeholder.com/52';
+                const isOwner = currentUser && currentUser.id === comment.user_id;
+
+                return `
+                    <article class="comment-entry">
+                        <img class="comment-avatar" src="${avatar}" alt="${username}">
+                        <div>
+                            <div class="comment-topline">
+                                <div class="comment-user">@${escapeHtml(username)}</div>
+                                <div class="comment-time">${formatTimestamp(comment.created_at)}</div>
+                            </div>
+                            <div class="comment-body">${escapeHtml(comment.comment_text || '')}</div>
+                            ${isOwner ? `<button class="comment-delete" data-comment-id="${comment.id}">Delete</button>` : ''}
+                        </div>
+                    </article>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.comment-delete').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    await deleteMessage(button.dataset.commentId);
+                });
+            });
+        }
+
+        async function postMessage() {
+            if (!currentUser) {
+                showStatus('Please log in to post.', true);
+                return;
+            }
+
+            const text = commentInput.value.trim();
+            if (!text) {
+                showStatus('Write a message before posting.', true);
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Posting...';
+            clearStatus();
+
+            try {
+                await ensureProfileExists();
+
+                const { error } = await supabaseClient
+                    .from('comments')
+                    .insert([{
+                        user_id: currentUser.id,
+                        commentable_type: BOARD_TYPE,
+                        commentable_id: BOARD_ID,
+                        comment_text: text
+                    }]);
+
+                if (error) {
+                    throw error;
+                }
+
+                commentForm.reset();
+                charCount.textContent = '0 / 500';
+                showStatus('Message posted.');
+                await loadBoardComments();
+            } catch (error) {
+                console.error('Error posting board message:', error);
+                showStatus(error.message || 'Could not post message.', true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Post Message';
+            }
+        }
+
+        async function deleteMessage(commentId) {
+            if (!confirm('Delete this message?')) {
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('comments')
+                    .delete()
+                    .eq('id', commentId);
+
+                if (error) {
+                    throw error;
+                }
+
+                showStatus('Message deleted.');
+                await loadBoardComments();
+            } catch (error) {
+                console.error('Error deleting board message:', error);
+                showStatus(error.message || 'Could not delete message.', true);
+            }
+        }
+
+        function formatTimestamp(value) {
+            const date = new Date(value);
+            const diffSeconds = Math.floor((Date.now() - date.getTime()) / 1000);
+            const ranges = [
+                ['year', 31536000],
+                ['month', 2592000],
+                ['week', 604800],
+                ['day', 86400],
+                ['hour', 3600],
+                ['minute', 60]
+            ];
+
+            for (const [label, seconds] of ranges) {
+                const amount = Math.floor(diffSeconds / seconds);
+                if (amount >= 1) {
+                    return `${amount} ${label}${amount === 1 ? '' : 's'} ago`;
+                }
+            }
+
+            return 'Just now';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
-
 </body>
 </html>
