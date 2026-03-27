@@ -5,9 +5,332 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>INSPO - KEV'S WORLD</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <style>
+        .inspo-shell {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        .inspo-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) 320px;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .inspo-intro,
+        .inspo-meta,
+        .inspo-card {
+            background: rgba(17, 17, 17, 0.96);
+            border: 1px solid #222;
+        }
+
+        .inspo-intro {
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .inspo-intro::after {
+            content: "";
+            position: absolute;
+            inset: auto -80px -80px auto;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+            pointer-events: none;
+        }
+
+        .inspo-kicker,
+        .meta-label,
+        .section-label,
+        .inspo-tag {
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+        }
+
+        .inspo-kicker {
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .inspo-intro h1 {
+            text-align: left;
+            margin: 0 0 1rem 0;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            letter-spacing: 8px;
+        }
+
+        .inspo-intro p {
+            margin: 0;
+            max-width: 42rem;
+            color: #aaa;
+        }
+
+        .inspo-meta {
+            padding: 1.5rem;
+            display: grid;
+            gap: 1rem;
+            align-content: start;
+        }
+
+        .meta-item {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #222;
+        }
+
+        .meta-item:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .meta-label {
+            display: block;
+            margin-bottom: 0.35rem;
+        }
+
+        .meta-value {
+            display: block;
+            color: #fff;
+            font-size: 1.4rem;
+        }
+
+        .meta-copy {
+            display: block;
+            margin-top: 0.35rem;
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .inspo-section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .inspo-section-head h2 {
+            margin: 0.3rem 0 0 0;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 400;
+        }
+
+        .inspo-section-copy {
+            margin: 0;
+            color: #777;
+            font-size: 0.85rem;
+            text-align: right;
+        }
+
+        .inspo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .inspo-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .inspo-card:hover,
+        .inspo-card:focus-visible {
+            transform: translateY(-4px);
+            border-color: #3a3a3a;
+        }
+
+        .inspo-card:focus-visible {
+            outline: 1px solid #666;
+            outline-offset: 2px;
+        }
+
+        .inspo-card img {
+            width: 100%;
+            aspect-ratio: 4 / 5;
+            object-fit: cover;
+            display: block;
+            filter: grayscale(12%);
+        }
+
+        .inspo-card-body {
+            padding: 1rem;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .inspo-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 1rem;
+        }
+
+        .inspo-card h3 {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .inspo-note {
+            margin: 0;
+            color: #bcbcbc;
+            font-size: 0.9rem;
+        }
+
+        .inspo-focus {
+            margin: 0;
+            color: #8a8a8a;
+            font-size: 0.8rem;
+            padding-top: 0.75rem;
+            border-top: 1px solid #222;
+        }
+
+        .inspo-card-cta {
+            color: #666;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+        }
+
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            cursor: pointer;
+        }
+
+        .modal-content {
+            position: relative;
+            width: min(1040px, calc(100% - 2rem));
+            max-height: calc(100vh - 2rem);
+            margin: 1rem auto;
+            background: #111;
+            border: 1px solid #333;
+            overflow-y: auto;
+            z-index: 1001;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1002;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: none;
+            background: #f2f2f2;
+            color: #000;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .modal-close:hover {
+            background: #d8d8d8;
+        }
+
+        .inspo-modal-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+            min-height: 640px;
+        }
+
+        .inspo-modal-media {
+            background: #050505;
+        }
+
+        .inspo-modal-media img {
+            width: 100%;
+            height: 100%;
+            max-height: calc(100vh - 2rem);
+            object-fit: cover;
+            display: block;
+        }
+
+        .inspo-modal-copy {
+            padding: 2rem;
+            display: grid;
+            align-content: start;
+            gap: 1rem;
+        }
+
+        .inspo-modal-copy h3 {
+            margin: 0;
+            font-size: clamp(1.8rem, 3vw, 2.7rem);
+            letter-spacing: 2px;
+        }
+
+        .inspo-modal-copy p {
+            margin: 0;
+        }
+
+        .inspo-modal-note {
+            color: #d0d0d0;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .inspo-modal-focus {
+            color: #989898;
+            padding-top: 1rem;
+            border-top: 1px solid #222;
+        }
+
+        .inspo-modal-caption {
+            display: grid;
+            gap: 0.4rem;
+            padding: 1rem 0;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+
+        .inspo-modal-caption span:last-child {
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 900px) {
+            .inspo-hero {
+                grid-template-columns: 1fr;
+            }
+
+            .inspo-section-head {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .inspo-section-copy {
+                text-align: left;
+            }
+
+            .inspo-modal-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .inspo-modal-media img {
+                max-height: 60vh;
+            }
+        }
+    </style>
 </head>
 <body>
-   <nav>
+    <nav>
         <a href="index.html">HOME</a>
         <a href="closet.html">CLOSET</a>
         <a href="fits.html">FIT</a>
@@ -17,50 +340,262 @@
         <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <h1>INSPO</h1>
+    <main class="inspo-shell">
+        <section class="inspo-hero">
+            <div class="inspo-intro">
+                <span class="inspo-kicker">Moodboard / Reference Point</span>
+                <h1>Inspo</h1>
+                <p>This page is the blueprint behind the fits. It is less about copying looks and more about pulling energy, silhouettes, attitude, and details from people who shaped how I see fashion.</p>
+            </div>
 
-    <div class="gallery">
-        <div class="gallery-item">
-            <img src="pics\carti (1).jpg" alt="big inspo since i was a kid">
-            <p>Playboi Carti</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\Ken Carson.jpg" alt="want those shoes bad">
-            <p>Ken Carson</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\osamason.jpg" alt="need those jeans">
-            <p>Osamason</p>
-        </div>
-         <div class="gallery-item">
-            <img src="pics\chief keef.jpg" alt="dressed up as him for halloween">
-            <p>Chief Keef</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\lil uzi vert.jpg" alt="need more pokemon cards">
-            <p>Lil Uzi Vert</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\A$AP Rocky in Paris (2025).jpg" alt="got me into fashion">
-            <p>A$AP Rocky</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\download (32).jpg" alt="only streamer i fw with">
-            <p>BruceDropEmOff</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\download (33).jpg" alt="Future Future">
-            <p>Future</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\PETA Responds to Kanye West’s Controversial “Theraflu” Line.jpg" alt="old kanye fits>">
-            <p>Kanye</p>
-        </div>
-        <div class="gallery-item">
-            <img src="pics\download (37).jpg" alt="old kanye fits>">
-            <p>Johnny Depp</p>
+            <aside class="inspo-meta">
+                <div class="meta-item">
+                    <span class="meta-label">People On The Board</span>
+                    <span class="meta-value">10</span>
+                    <span class="meta-copy">Music, style, internet, and pop culture all mixed together.</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Main Themes</span>
+                    <span class="meta-value" style="font-size: 1rem; color: #d5d5d5;">Risk, texture, confidence</span>
+                    <span class="meta-copy">The fits that stick usually feel lived-in, sharp, and a little unpredictable.</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">How I Use It</span>
+                    <span class="meta-value" style="font-size: 1rem; color: #d5d5d5;">Build, remix, wear</span>
+                    <span class="meta-copy">Take one detail, one silhouette, or one attitude and make it my own.</span>
+                </div>
+            </aside>
+        </section>
+
+        <section>
+            <div class="inspo-section-head">
+                <div>
+                    <span class="section-label">Current Rotation</span>
+                    <h2>People Who Shaped The Taste</h2>
+                </div>
+                <p class="inspo-section-copy">Same dark tone as the rest of the project, but with more personality and context.</p>
+            </div>
+
+            <div class="inspo-grid">
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/carti (1).jpg" alt="Playboi Carti">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Playboi Carti</h3>
+                            <span class="inspo-tag">Energy</span>
+                        </div>
+                        <p class="inspo-note">Big inspiration since I was a kid. The appeal is how he can make loud styling still feel effortless.</p>
+                        <p class="inspo-focus">What I pull from this: fearless layering and stage-presence attitude.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/Ken Carson.jpg" alt="Ken Carson">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Ken Carson</h3>
+                            <span class="inspo-tag">Details</span>
+                        </div>
+                        <p class="inspo-note">Always locked in on statement pieces. Even one pair of shoes can shift the whole fit.</p>
+                        <p class="inspo-focus">What I pull from this: standout footwear and strong proportion choices.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/osamason.jpg" alt="Osamason">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Osamason</h3>
+                            <span class="inspo-tag">Silhouette</span>
+                        </div>
+                        <p class="inspo-note">The denim and shape language stand out immediately. It is a reminder that the cut matters as much as the item.</p>
+                        <p class="inspo-focus">What I pull from this: jeans with presence and sharper shape control.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/chief keef.jpg" alt="Chief Keef">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Chief Keef</h3>
+                            <span class="inspo-tag">Legacy</span>
+                        </div>
+                        <p class="inspo-note">Strong enough influence that I dressed up as him for Halloween. The style feels raw in the best way.</p>
+                        <p class="inspo-focus">What I pull from this: confidence, nostalgia, and not over-polishing everything.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/lil uzi vert.jpg" alt="Lil Uzi Vert">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Lil Uzi Vert</h3>
+                            <span class="inspo-tag">Play</span>
+                        </div>
+                        <p class="inspo-note">Brings personality into fashion instead of treating it like a uniform. It makes the whole thing more fun.</p>
+                        <p class="inspo-focus">What I pull from this: color, accessories, and letting personal interests show.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/A$AP Rocky in Paris (2025).jpg" alt="A$AP Rocky">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>A$AP Rocky</h3>
+                            <span class="inspo-tag">Fashion</span>
+                        </div>
+                        <p class="inspo-note">One of the people that really got me into fashion. He can move between clean, tailored, and experimental without losing identity.</p>
+                        <p class="inspo-focus">What I pull from this: balance between luxury styling and individuality.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/download (32).jpg" alt="BruceDropEmOff">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>BruceDropEmOff</h3>
+                            <span class="inspo-tag">Internet</span>
+                        </div>
+                        <p class="inspo-note">The only streamer I really tap in with. He proves personality can make even simple pieces hit harder.</p>
+                        <p class="inspo-focus">What I pull from this: casual fits with more presence and character.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/download (33).jpg" alt="Future">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Future</h3>
+                            <span class="inspo-tag">Aura</span>
+                        </div>
+                        <p class="inspo-note">Some people just look expensive without trying too hard. That is the lane that makes this reference stick.</p>
+                        <p class="inspo-focus">What I pull from this: understated luxury and strong outerwear energy.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/PETA Responds to Kanye West’s Controversial “Theraflu” Line.jpg" alt="Kanye West">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Kanye</h3>
+                            <span class="inspo-tag">Archive</span>
+                        </div>
+                        <p class="inspo-note">Older Kanye fits still hold up. There is a lot to study in how simple pieces get elevated through styling.</p>
+                        <p class="inspo-focus">What I pull from this: muted palettes, layering, and fit-first thinking.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+
+                <article class="inspo-card" tabindex="0">
+                    <img src="pics/download (37).jpg" alt="Johnny Depp">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>Johnny Depp</h3>
+                            <span class="inspo-tag">Texture</span>
+                        </div>
+                        <p class="inspo-note">A different kind of reference point, but the messy accessories and layered texture still hit.</p>
+                        <p class="inspo-focus">What I pull from this: jewelry, scarves, and outfits that feel collected over time.</p>
+                        <span class="inspo-card-cta">Click to view</span>
+                    </div>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <div id="inspo-modal" class="modal" style="display: none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content">
+            <button class="modal-close" id="close-inspo-modal-btn" aria-label="Close inspiration detail">×</button>
+            <div id="inspo-modal-body"></div>
         </div>
     </div>
 
+    <script>
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const profileLink = document.getElementById('profile-link');
+        const authLink = document.getElementById('auth-link');
+        const inspoModal = document.getElementById('inspo-modal');
+        const inspoModalBody = document.getElementById('inspo-modal-body');
+
+        document.querySelectorAll('.inspo-card').forEach((card) => {
+            card.addEventListener('click', () => openInspoModal(card));
+            card.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    openInspoModal(card);
+                }
+            });
+        });
+
+        document.getElementById('close-inspo-modal-btn').addEventListener('click', closeInspoModal);
+        document.querySelector('#inspo-modal .modal-backdrop').addEventListener('click', closeInspoModal);
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && inspoModal.style.display === 'block') {
+                closeInspoModal();
+            }
+        });
+
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                profileLink.style.display = 'inline';
+                authLink.textContent = 'LOGOUT';
+                authLink.href = '#';
+                authLink.addEventListener('click', async (event) => {
+                    event.preventDefault();
+                    await supabaseClient.auth.signOut();
+                    window.location.reload();
+                });
+            } else {
+                profileLink.style.display = 'none';
+                authLink.style.display = 'inline';
+                authLink.textContent = 'LOGIN';
+                authLink.href = 'auth.html';
+            }
+        });
+
+        function openInspoModal(card) {
+            const image = card.querySelector('img');
+            const name = card.querySelector('h3')?.textContent || '';
+            const tag = card.querySelector('.inspo-tag')?.textContent || '';
+            const note = card.querySelector('.inspo-note')?.textContent || '';
+            const focus = card.querySelector('.inspo-focus')?.textContent || '';
+
+            inspoModalBody.innerHTML = `
+                <div class="inspo-modal-layout">
+                    <div class="inspo-modal-media">
+                        <img src="${image.src}" alt="${image.alt}">
+                    </div>
+                    <div class="inspo-modal-copy">
+                        <span class="section-label">Inspiration Detail</span>
+                        <h3>${name}</h3>
+                        <div class="inspo-modal-caption">
+                            <span class="meta-label">Lane</span>
+                            <span>${tag}</span>
+                        </div>
+                        <p class="inspo-modal-note">${note}</p>
+                        <p class="inspo-modal-focus">${focus}</p>
+                    </div>
+                </div>
+            `;
+
+            inspoModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeInspoModal() {
+            inspoModal.style.display = 'none';
+            inspoModalBody.innerHTML = '';
+            document.body.style.overflow = 'auto';
+        }
+    </script>
 </body>
 </html>
