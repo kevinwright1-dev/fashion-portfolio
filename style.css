@@ -101,7 +101,6 @@ button {
     border: 1px solid #fff;
     padding: 0.7rem 2rem;
     cursor: pointer;
-    text-transform: uppercase;
     letter-spacing: 1px;
     font-family: "Roboto Mono", monospace;
 }

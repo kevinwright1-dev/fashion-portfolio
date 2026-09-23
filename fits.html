@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FITS - Fashion Closet</title>
+    <title>fits - Fashion Closet</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -76,21 +76,25 @@
             position: absolute;
             top: 1rem;
             right: 1rem;
-            background: #ff6b6b;
-            color: #000;
+            color: #ffff;
             border: none;
+            padding: 0;
+            background: transparent;
             width: 40px;
             height: 40px;
-            border-radius: 50%;
-            font-size: 1.5rem;
+            border-radius: 0;
+            font-size: 0.8rem;
             cursor: pointer;
             z-index: 1002;
-            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-close:hover {
-            background: #ff4444;
+            background: transparent;
         }
+
     </style>
 </head>
 <body>
@@ -105,7 +109,7 @@
     </nav>
 
     <div class="fits-header">
-        <h1>FITS</h1>
+        <h1>fits</h1>
         <a href="add-outfit.html" class="add-outfit-btn" id="add-outfit-btn" style="display:none;">+ Share Fit</a>
     </div>
 
@@ -126,7 +130,7 @@
     <div id="outfit-modal" class="modal" style="display: none;">
         <div class="modal-backdrop"></div>
         <div class="modal-content">
-            <button class="modal-close" id="close-modal-btn">×</button>
+            <button class="modal-close" id="close-modal-btn">exit</button>
             
             <div id="modal-body">
                 <p style="text-align: center; padding: 3rem; color: #666;">Loading...</p>
