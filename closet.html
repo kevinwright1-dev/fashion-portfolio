@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>THE CLOSET - Fashion Closet</title>
+    <title>the closet - Fashion Closet</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -21,7 +21,6 @@
             border: 1px solid #fff;
             padding: 0.7rem 2rem;
             cursor: pointer;
-            text-transform: uppercase;
             letter-spacing: 1px;
             text-decoration: none;
             display: inline-block;
@@ -44,7 +43,7 @@
             border: 1px solid #333;
             padding: 0.5rem 1rem;
             cursor: pointer;
-            text-transform: uppercase;
+            text-transform: lowercase;
             font-size: 0.8rem;
             letter-spacing: 1px;
         }
@@ -83,8 +82,8 @@
     </nav>
 
     <div class="closet-header">
-        <h1>THE CLOSET</h1>
-        <a href="add_item.html" class="add-item-btn" id="add-item-btn" style="display:none;">+ Add Item</a>
+        <h1>closet:</h1>
+        <a href="add_item.html" class="add-item-btn" id="add-item-btn" style="display:none;">+ add item</a>
     </div>
 
     <!-- Filters -->
@@ -99,7 +98,7 @@
         <input
             type="search"
             id="closet-search"
-            placeholder="Search item or brand..."
+            placeholder="search item or brand..."
             style="margin-left:auto; min-width:240px; max-width:360px;"
         >
     </div>
@@ -113,9 +112,8 @@
     </div>
 
     <div id="empty-state" class="empty-state" style="display: none;">
-        <p style="font-size: 3rem;">👔</p>
-        <p>Your closet is empty</p>
-        <a href="add_item.html" class="add-item-btn">Add Your First Item</a>
+        <p>your closet is empty</p>
+        <a href="add_item.html" class="add-item-btn">add your first item</a>
     </div>
 
     <script>
