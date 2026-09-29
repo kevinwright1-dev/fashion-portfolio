@@ -116,6 +116,14 @@
         <a href="add_item.html" class="add-item-btn">add your first item</a>
     </div>
 
+    <div id="item-modal" class="modal" style="display:none;">
+        <div class="modal-backdrop"></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-label="Closet item details">
+            <button class="modal-close" type="button" onclick="closeModal()" aria-label="Close item details">exit</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
     <script>
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         let currentUser = null;
@@ -124,6 +132,13 @@
 
         // Initialize
         init();
+
+        document.querySelector('#item-modal .modal-backdrop').addEventListener('click', closeModal);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && document.getElementById('item-modal').style.display === 'block') {
+                closeModal();
+            }
+        });
 
         async function init() {
             // Check auth
@@ -224,10 +239,43 @@
         }
 
         function viewItem(itemId) {
-            // For now, just log it
-            // In future weeks, we'll create a detail view
-            console.log('View item:', itemId);
-            // window.location.href = `item.html?id=${itemId}`;
+            const item = allItems.find((closetItem) => String(closetItem.id) === String(itemId));
+            if (!item) return;
+
+            const modalBody = document.getElementById('modal-body');
+            const image = document.createElement('img');
+            image.className = 'closet-modal-image';
+            image.src = item.image_url;
+            image.alt = item.title || 'Closet item';
+
+            const details = document.createElement('div');
+            details.className = 'closet-modal-copy';
+
+            const title = document.createElement('h2');
+            title.textContent = item.title || 'Untitled item';
+            details.append(title);
+
+            if (item.brand) {
+                const brand = document.createElement('p');
+                brand.textContent = item.brand;
+                details.append(brand);
+            }
+
+            if (item.category) {
+                const category = document.createElement('p');
+                category.textContent = item.category;
+                details.append(category);
+            }
+
+            modalBody.replaceChildren(image, details);
+            document.getElementById('item-modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('item-modal').style.display = 'none';
+            document.getElementById('modal-body').replaceChildren();
+            document.body.style.overflow = 'auto';
         }
     </script>
 </body>

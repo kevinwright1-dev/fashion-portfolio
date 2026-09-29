@@ -156,7 +156,8 @@
         // Initialize Supabase client
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-        const postAuthRedirect = redirectParam || 'profile.html';
+        const isSafeRedirect = redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//');
+        const postAuthRedirect = isSafeRedirect ? redirectParam : 'profile.html';
 
         function goAfterAuth() {
             window.location.href = postAuthRedirect;
