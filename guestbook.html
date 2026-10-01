@@ -21,6 +21,17 @@
         .reply-button:hover, .toggle-children:hover {
             background: #222;
         }
+        #sort-controls {
+            float: right;
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        #sort-controls button {
+            margin-left: 8px;
+        }
+
+
     </style>
     
 </head>
@@ -37,6 +48,10 @@
     <main>
         <div id="board-view">
             <button id="start-thread">create thread</button>
+            <div id="sort-controls">
+                <button data-sort="new">New</button>
+                <button data-sort="top">Top</button>
+            </div>
 
             <div id="new-thread-form" style="display:none;">
                 <input type="text" id="thread-author" placeholder="your name (optional)" maxlength="50">
@@ -44,6 +59,8 @@
                 <textarea id="thread-content" placeholder="write your message..." maxlength="2000" required></textarea>
                 <button id="submit-thread">post thread</button>
             </div>
+
+
             <div id="thread-list">
                 <!-- threads get rendered here by JS -->
             </div>
@@ -185,13 +202,13 @@
 
 
 
-        async function loadThreadList() {
+        async function loadThreadList(sortMethod = 'new') {
             document.getElementById('thread-list').innerHTML = '<p>loading threads...</p>';
 
             const { data: threads, error } = await supabaseClient
                 .from('threads')
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order(sortMethod === 'new' ? 'created_at' : sortMethod === 'top' ? 'upvotes' : 'created_at', { ascending: false });
 
             if (error) {
                 console.error(error);
@@ -329,6 +346,12 @@
             parentIdInput.value = '';
             const newReply = data[0];
             loadReplyList();
+        });
+        document.querySelectorAll('#sort-controls button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.sort;
+                loadThreadList(mode);
+            });
         });
         document.getElementById('back-to-board').addEventListener('click', () => {
             document.getElementById('thread-view').style.display = 'none';
