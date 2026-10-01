@@ -59,6 +59,7 @@
                 <h2>${escapeHTML(thread.title)}</h2>
                 <p><em>posted by ${escapeHTML(thread.author_name)}</em></p>
                 <p>${escapeHTML(thread.content)}</p>
+                <p><small>posted on ${formatDate(thread.created_at)}</small></p>
             `;
             document.getElementById('board-view').style.display = 'none';
             document.getElementById('thread-view').style.display = 'block';
@@ -69,7 +70,13 @@
             div.textContent = str;
             return div.innerHTML;
         }
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString();
+        }
         async function loadThreadList() {
+            document.getElementById('thread-list').innerHTML = '<p>loading threads...</p>';
+
             const { data: threads, error } = await supabaseClient
                 .from('threads')
                 .select('*')
@@ -82,6 +89,10 @@
 
             const listEl = document.getElementById('thread-list');
             listEl.innerHTML = '';
+            if (threads.length === 0) {
+                listEl.innerHTML = '<p>no threads yet</p>';
+                return;
+            }
 
             threads.forEach(thread => {
                 const item = document.createElement('div');
@@ -89,6 +100,8 @@
                 item.innerHTML = `
                 <h3>${escapeHTML(thread.title)}</h3>
                 <p><em>by ${escapeHTML(thread.author_name)}</em></p>
+                <p>${escapeHTML(thread.content)}</p>
+                <p><small>posted on ${formatDate(thread.created_at)}</small></p>
                 `;
                 item.addEventListener('click', () => showThread(thread));
                 listEl.appendChild(item);
@@ -106,15 +119,20 @@
                 return;
             }
 
+            document.getElementById('reply-list').innerHTML = '<p>loading replies...</p>';
             const listEl = document.getElementById('reply-list');
             listEl.innerHTML = '';
-
+            if (replies.length === 0) {
+                listEl.innerHTML = '<p>no replies yet</p>';
+                return;
+            }
             replies.forEach(reply => {
                 const item = document.createElement('div');
                 item.className = 'reply-item';
                 item.innerHTML = `
                 <p><em> ${escapeHTML(reply.author_name)}</em></p>
                 <p>${escapeHTML(reply.content)}</p>
+                <p><small>posted on ${formatDate(reply.created_at)}</small></p>
                 `;
                 listEl.appendChild(item);
             });
@@ -133,6 +151,15 @@
                 alert('please enter a title and a message for your thread');
                 return;
             }
+            if (title.length > 150) {
+                alert('title must be 150 characters or less');
+                return;
+            }
+            if (content.length > 2000) {
+                alert('message must be 2000 characters or less');
+                return;
+            }
+
 
             const { data, error } = await supabaseClient
                 .from('threads')
@@ -158,11 +185,15 @@
 
             const author = authorInput.value.trim() || 'anon';
             const content = contentInput.value.trim();
-
             if (!content) {
                 alert('please enter a message for your reply');
                 return;
             }
+            if (content.length > 1000) {
+                alert('message must be 1000 characters or less');
+                return;
+            }
+
 
             const { data, error } = await supabaseClient
                 .from('thread_replies')
