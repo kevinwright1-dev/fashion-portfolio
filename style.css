@@ -46,6 +46,7 @@ h1 {
 p {
     overflow-wrap: break-word;
     word-wrap: break-word;
+    white-space: pre-wrap;
 }
 
 /* Grid Layout for Galleries (Closet, Fits, Inspo) */
@@ -109,6 +110,7 @@ button {
     letter-spacing: 1px;
     font-family: "Roboto Mono", monospace;
 }
+
 
 button:hover {
     background: #222;
