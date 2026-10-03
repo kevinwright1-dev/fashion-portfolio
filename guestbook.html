@@ -293,23 +293,29 @@
                 return;
             }
 
+            const submitButton = document.getElementById('submit-thread');
+            submitButton.disabled = true;
 
-            const { data, error } = await supabaseClient
-                .from('threads')
-                .insert({ title, author_name: author, content })
-                .select();
+            try {
+                const { data, error } = await supabaseClient
+                    .from('threads')
+                    .insert({ title, author_name: author, content })
+                    .select();
 
-            if (error) {
-                console.error(error);
-                alert('failed to create thread');
-                return;
+                if (error) {
+                    console.error(error);
+                    alert('failed to create thread');
+                    return;
+                }
+                titleInput.value = '';
+                authorInput.value = '';
+                contentInput.value = '';
+                const newThread = data[0];
+                loadThreadList();
+                showThread(newThread);
+            } finally {
+                submitButton.disabled = false;
             }
-            titleInput.value = '';
-            authorInput.value = '';
-            contentInput.value = '';
-            const newThread = data[0];
-            loadThreadList();
-            showThread(newThread);
 
         });
         document.getElementById('submit-reply').addEventListener('click', async () => {
