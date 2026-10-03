@@ -50,6 +50,7 @@
             <button id="start-thread">create thread</button>
             <div id="sort-controls">
                 <button data-sort="new">New</button>
+                <button data-sort="old">Old</button>
                 <button data-sort="top">Top</button>
             </div>
 
@@ -208,7 +209,7 @@
             const { data: threads, error } = await supabaseClient
                 .from('threads')
                 .select('*')
-                .order(sortMethod === 'new' ? 'created_at' : sortMethod === 'top' ? 'upvotes' : 'created_at', { ascending: false });
+                .order(sortMethod === 'new' ? 'created_at' : sortMethod === 'top' ? 'upvotes' : 'created_at', { ascending: sortMethod === 'old' ? true : false });
 
             if (error) {
                 console.error(error);
