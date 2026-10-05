@@ -43,6 +43,14 @@ h1 {
     margin-bottom: 3rem;
 }
 
+h2 {
+    margin: 0.3rem 0 0 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 400;
+}
+
 p {
     overflow-wrap: break-word;
     word-wrap: break-word;
