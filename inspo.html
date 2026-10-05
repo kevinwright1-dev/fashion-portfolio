@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INSPO - KEV'S WORLD</title>
+    <title>Inspo</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
@@ -298,163 +298,135 @@
     </nav>
 
     <main class="inspo-shell">
-        <section>
-            <div class="inspo-section-head">
-                <div>
-                    <span class="section-label">Current Rotation</span>
-                    <h2>People Who Shaped The Taste</h2>
+        <div class="inspo-section-head">
+            <div>
+                <h2>Inspo Board</h2>
+            </div>
+            <button id="add-inspo-btn">Add Inspo</button>
+        </div>
+
+        <div id="inspo-form" style ="display: none;">
+            <input type="text" id="inspo-author" placeholder="your name(optional)" maxlength="50">
+            <input type="text" id="inspo-title" placeholder="title" maxlength="150" required>
+            <input type="file" id="inspo-image" accept="image/png, image/jpeg, image/gif, image/webp" required>
+            <textarea id="inspo-desc" placeholder="description" maxlength="200"></textarea>
+            <button id="submit-inspo-btn">submit</button>
+            <button id="cancel-inspo-btn">cancel</button>
+        </div>
+
+        <div class="inspo-grid" id="inspo-grid">
+            <!-- Inspo cards will be dynamically inserted here -->
+        </div>
+
+        <div id="inspo-modal" class="modal" style="display: none;">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content">
+                <button class="modal-close" id="close-inspo-modal-btn" aria-label="Close inspiration detail">exit</button>
+                <div id="inspo-modal-body"></div>
                 </div>
-                <p class="inspo-section-copy">full list.</p>
             </div>
+        </div>
 
-            <div class="inspo-grid">
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/carti (1).jpg" alt="Playboi Carti">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Playboi Carti</h3>
-                            <span class="inspo-tag">Energy</span>
-                        </div>
-                        <p class="inspo-note">Big inspiration since I was a kid. The appeal is how he can make loud styling still feel effortless.</p>
-                        <p class="inspo-focus">What I pull from this: fearless layering and stage-presence attitude.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
+            
 
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/Ken Carson.jpg" alt="Ken Carson">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Ken Carson</h3>
-                            <span class="inspo-tag">Details</span>
-                        </div>
-                        <p class="inspo-note">Always locked in on statement pieces. Even one pair of shoes can shift the whole fit.</p>
-                        <p class="inspo-focus">What I pull from this: standout footwear and strong proportion choices.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/osamason.jpg" alt="Osamason">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Osamason</h3>
-                            <span class="inspo-tag">Silhouette</span>
-                        </div>
-                        <p class="inspo-note">The denim and shape language stand out immediately. It is a reminder that the cut matters as much as the item.</p>
-                        <p class="inspo-focus">What I pull from this: jeans with presence and sharper shape control.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/chief keef.jpg" alt="Chief Keef">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Chief Keef</h3>
-                            <span class="inspo-tag">Legacy</span>
-                        </div>
-                        <p class="inspo-note">Strong enough influence that I dressed up as him for Halloween. The style feels raw in the best way.</p>
-                        <p class="inspo-focus">What I pull from this: confidence, nostalgia, and not over-polishing everything.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/lil uzi vert.jpg" alt="Lil Uzi Vert">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Lil Uzi Vert</h3>
-                            <span class="inspo-tag">Play</span>
-                        </div>
-                        <p class="inspo-note">Brings personality into fashion instead of treating it like a uniform. It makes the whole thing more fun.</p>
-                        <p class="inspo-focus">What I pull from this: color, accessories, and letting personal interests show.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/A$AP Rocky in Paris (2025).jpg" alt="A$AP Rocky">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>A$AP Rocky</h3>
-                            <span class="inspo-tag">Fashion</span>
-                        </div>
-                        <p class="inspo-note">One of the people that really got me into fashion. He can move between clean, tailored, and experimental without losing identity.</p>
-                        <p class="inspo-focus">What I pull from this: balance between luxury styling and individuality.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/download (32).jpg" alt="BruceDropEmOff">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>BruceDropEmOff</h3>
-                            <span class="inspo-tag">Internet</span>
-                        </div>
-                        <p class="inspo-note">The only streamer I really tap in with. He proves personality can make even simple pieces hit harder.</p>
-                        <p class="inspo-focus">What I pull from this: casual fits with more presence and character.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/download (33).jpg" alt="Future">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Future</h3>
-                            <span class="inspo-tag">Aura</span>
-                        </div>
-                        <p class="inspo-note">Some people just look expensive without trying too hard. That is the lane that makes this reference stick.</p>
-                        <p class="inspo-focus">What I pull from this: understated luxury and strong outerwear energy.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/PETA Responds to Kanye West’s Controversial “Theraflu” Line.jpg" alt="Kanye West">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Kanye</h3>
-                            <span class="inspo-tag">Archive</span>
-                        </div>
-                        <p class="inspo-note">Older Kanye fits still hold up. There is a lot to study in how simple pieces get elevated through styling.</p>
-                        <p class="inspo-focus">What I pull from this: muted palettes, layering, and fit-first thinking.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-
-                <article class="inspo-card" tabindex="0">
-                    <img src="pics/download (37).jpg" alt="Johnny Depp">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>Johnny Depp</h3>
-                            <span class="inspo-tag">Texture</span>
-                        </div>
-                        <p class="inspo-note">A different kind of reference point, but the messy accessories and layered texture still hit.</p>
-                        <p class="inspo-focus">What I pull from this: jewelry, scarves, and outfits that feel collected over time.</p>
-                        <span class="inspo-card-cta">Click to view</span>
-                    </div>
-                </article>
-            </div>
-        </section>
     </main>
 
-    <div id="inspo-modal" class="modal" style="display: none;">
-        <div class="modal-backdrop"></div>
-        <div class="modal-content">
-            <button class="modal-close" id="close-inspo-modal-btn" aria-label="Close inspiration detail">exit</button>
-            <div id="inspo-modal-body"></div>
-        </div>
-    </div>
 
     <script>
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        document.getElementById('add-inspo-btn').addEventListener('click', () => {
+            const inspoForm = document.getElementById('inspo-form');
+            inspoForm.style.display = inspoForm.style.display === 'none' ? 'block' : 'none';
+        });
+        document.getElementById('cancel-inspo-btn').addEventListener('click', () => {
+            const inspoForm = document.getElementById('inspo-form');
+            inspoForm.style.display = 'none';
+        });
+        document.getElementById('submit-inspo-btn').addEventListener('click', async () => {
+            const author = document.getElementById('inspo-author').value;
+            const title = document.getElementById('inspo-title').value;
+            const imageFile = document.getElementById('inspo-image').files[0];
+            const desc = document.getElementById('inspo-desc').value;
+
+            if (!title || !imageFile) {
+                alert('please provide a title and an image.');
+                return;
+            }
+
+            const ext = imageFile.name.split('.').pop().toLowerCase();
+            const filePath = `public/${crypto.randomUUID()}.${ext}`;
+            
+            const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                .from('inspo_img')
+                .upload(filePath, imageFile, {
+                    content: imageFile.type,
+                    upsert: false
+                });
+
+            if (uploadError) {
+                console.error('Error uploading image:', uploadError);
+                alert('Failed to upload image: ' + uploadError.message);
+                return;
+            }
+
+            const { data: urlData} = supabaseClient.storage
+                .from('inspo_img')
+                .getPublicUrl(uploadData.path);
+
+            
+            const publicURL = urlData.publicUrl;
+
+            const { error: insertError } = await supabaseClient.from('inspo_board').insert([
+                { author, title, image_url: publicURL, description: desc }
+            ]);
+
+            if (insertError) {
+                console.error('Error inserting inspo entry:', insertError);
+                alert('Failed to add inspo: ' + insertError.message);
+                return;
+            }
+
+            document.getElementById('inspo-author').value = '';
+            document.getElementById('inspo-title').value = '';
+            document.getElementById('inspo-image').value = '';
+            document.getElementById('inspo-desc').value = '';
+            document.getElementById('inspo-form').style.display = 'none';
+
+        });
+
         const profileLink = document.getElementById('profile-link');
         const authLink = document.getElementById('auth-link');
         const inspoModal = document.getElementById('inspo-modal');
         const inspoModalBody = document.getElementById('inspo-modal-body');
+
+        async function loadInspoList() {
+            const { data, error } = await supabaseClient.from('inspo_board').select('*').order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching inspo entries:', error);
+                alert('Failed to load inspo board: ' + error.message);
+                return;
+            }
+
+            const inspoGrid = document.getElementById('inspo-grid');
+            inspoGrid.innerHTML = '';
+
+            data.forEach(entry => {
+                const card = document.createElement('div');
+                card.className = 'inspo-card';
+                card.tabIndex = 0;
+                card.innerHTML = `
+                    <img src="${entry.image_url}" alt="${entry.title}">
+                    <div class="inspo-card-body">
+                        <div class="inspo-card-header">
+                            <h3>${entry.title}</h3>
+                            <small>${entry.author || 'anon'}</small>
+                        </div>
+                        <span class="inspo-card-cta">view</span>
+                    </div>
+                `;
+                inspoGrid.appendChild(card);
+            });
+        }
 
         document.querySelectorAll('.inspo-card').forEach((card) => {
             card.addEventListener('click', () => openInspoModal(card));
@@ -527,6 +499,7 @@
             inspoModalBody.innerHTML = '';
             document.body.style.overflow = 'auto';
         }
+        loadInspoList();
     </script>
 </body>
 </html>

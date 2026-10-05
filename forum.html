@@ -94,7 +94,7 @@
         function showThread(thread) {
             currentThread = thread;
             document.getElementById('thread-display').innerHTML = `
-                <h2>${escapeHTML(thread.title)}</h2>
+                <h3>${escapeHTML(thread.title)}</h3>
                 <p><em>posted by ${escapeHTML(thread.author_name)}</em></p>
                 <p>${escapeHTML(thread.content)}</p>
                 <p><small>posted on ${formatDate(thread.created_at)}</small></p>
