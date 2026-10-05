@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forum</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.0"></script>
+    <script src="config.js"></script>
+    <style>
+        .reply-item {
+            padding: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        #reply-form {
+            margin-top: 10px;
+        }
+        .children-container {
+            margin-top: 0.5rem;
+        }
+        .reply-button:hover, .toggle-children:hover {
+            background: #222;
+        }
+        #sort-controls {
+            float: right;
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        #sort-controls button {
+            margin-left: 8px;
+        }
+
+
+    </style>
+    
+</head>
+<body>
+    <nav>
+        <a href="index.html">HOME</a>
+        <a href="closet.html">CLOSET</a>
+        <a href="fits.html">FIT</a>
+        <a href="inspo.html">INSPO</a>
+        <a href="forum.html">FORUM</a>
+        <a href="profile.html" id="profile-link" style="display:none;">PROFILE</a>
+        <a href="auth.html" id="auth-link">LOGIN</a>
+    </nav>
+    <main>
+        <div id="board-view">
+            <h2 style="margin-bottom: 1rem;">forum</h2>
+            <button id="start-thread">create thread</button>
+            <div id="sort-controls">
+                <button data-sort="new">New</button>
+                <button data-sort="old">Old</button>
+                <button data-sort="top">Top</button>
+            </div>
+
+            <div id="new-thread-form" style="display:none;">
+                <input type="text" id="thread-author" placeholder="your name (optional)" maxlength="50">
+                <input type="text" id="thread-title" placeholder="thread title" maxlength="150" required>
+                <textarea id="thread-content" placeholder="write your message..." maxlength="2000" required></textarea>
+                <button id="submit-thread">post thread</button>
+                <button id="cancel-thread">cancel</button>
+            </div>
+
+
+            <div id="thread-list">
+                <!-- threads get rendered here by JS -->
+            </div>
+        </div>
+
+        <div id="thread-view" style="display:none;">
+            <button id="back-to-board">&larr; back to board</button>
+            <div id="thread-display">
+                <!-- selected thread's title/author show here -->
+            </div>
+            <div id="reply-form">
+                <input type="hidden" id="reply-parent-id" value="">
+                <input type="text" id="reply-author" placeholder="your name (optional)" maxlength="50">
+                <textarea id="reply-content" placeholder="write your reply..." maxlength="1000" required></textarea>
+                <button id="submit-reply">post reply</button>
+                <button id="cancel-reply">cancel</button>
+            </div>
+            <h2 id="replies-heading"> replies:</h2>
+            <div id="reply-list">
+                <!-- replies get rendered here -->
+            </div>
+        </div>
+
+    </main>
+   
+
+    <script >
+        let currentThread = null;
+        function showThread(thread) {
+            currentThread = thread;
+            document.getElementById('thread-display').innerHTML = `
+                <h3>${escapeHTML(thread.title)}</h3>
+                <p><em>posted by ${escapeHTML(thread.author_name)}</em></p>
+                <p>${escapeHTML(thread.content)}</p>
+                <p><small>posted on ${formatDate(thread.created_at)}</small></p>
+                <button class="upvote-thread">▲ ${thread.upvotes}</button>
+            `;
+            const upvoteBtn = document.querySelector('#thread-display .upvote-thread');
+            upvoteBtn.addEventListener('click', async () => {
+                const { data, error } = await supabaseClient
+                    .rpc('add_upvote_thread', { p_threads_id: thread.id });
+
+                if (error) {
+                    console.error(error);
+                    alert(error.message);
+                    return;
+                }
+                thread.upvotes = data;
+                upvoteBtn.textContent = `▲ ${thread.upvotes}`;
+            });
+
+
+            document.getElementById('board-view').style.display = 'none';
+            document.getElementById('thread-view').style.display = 'block';
+            loadReplyList();
+        }
+        function resetReplyForm() {
+            const form = document.getElementById('reply-form');
+            document.getElementById('cancel-reply').style.display = 'none';
+            document.getElementById('thread-view')
+                .insertBefore(form, document.getElementById('replies-heading').nextSibling);
+            document.getElementById('reply-parent-id').value = '';
+        }
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleString();
+        }
+        function previewText(text, maxLength = 200) {
+            if (!text) return '';
+            const firstPara = text.split(/\n+/)[0].trim();
+            if (firstPara.length <= maxLength) return firstPara;
+            return firstPara.substring(0, maxLength) + '...';
+        }
+        function buildReplyTree(replies) {
+            const map = {};
+            replies.forEach(r => map[r.id] = { ...r, children: [] });
+
+            const roots = [];
+
+            replies.forEach(r => {
+                const parent = map[r.parent_reply_id];
+                if (r.parent_reply_id && parent) {
+                    parent.children.push(map[r.id]);
+                } else {
+                    roots.push(map[r.id]);
+                }
+            });
+
+            return roots;
+        }
+        function renderReply(reply, container, depth = 0) {
+            const item = document.createElement('div');
+            item.className = 'reply-item';
+            item.style.marginLeft = `${depth * 20}px`;
+
+            const hasChildren = reply.children.length > 0;
+
+            const childrenContainer = document.createElement('div');
+            childrenContainer.className = 'children-container';
+
+
+            item.innerHTML = `
+                <p><em>${escapeHTML(reply.author_name)}</em></p>
+                <p>${escapeHTML(reply.content)}</p>
+                <p><small>${formatDate(reply.created_at)}</small></p>
+                <button class="upvote-reply">▲ ${reply.upvotes}</button>
+                <button class="reply-button">reply</button>
+                ${hasChildren ? `<button class="toggle-children">hide replies</button>` : ""}
+            `;
+
+            item.querySelector('.upvote-reply').addEventListener('click', async () => {
+                const { data, error } = await supabaseClient
+                    .rpc('add_upvote_reply', { reply_id: reply.id });
+
+                if (error) {
+                    console.error(error);
+                    alert(error.message);
+                    return;
+                }
+                reply.upvotes = data;
+                item.querySelector('.upvote-reply').textContent = `▲ ${reply.upvotes}`;
+            });
+            item.querySelector('.reply-button').addEventListener('click', () => {
+                document.getElementById('reply-parent-id').value = reply.id;
+
+                const replyForm = document.getElementById('reply-form');
+                document.getElementById('cancel-reply').style.display = 'inline-block';
+
+                const childrenContainer = item.querySelector('.children-container');
+                if (childrenContainer) {
+                    item.insertBefore(replyForm, childrenContainer);
+                } else {
+                    item.appendChild(replyForm);
+                }
+
+                document.getElementById('reply-content').focus();
+            });
+
+            container.appendChild(item);
+
+
+            if (hasChildren) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'children-container';
+                childrenContainer.style.marginLeft = `${(depth + 1) * 20}px`;
+
+                reply.children.forEach(child => renderReply(child, childrenContainer, depth + 1));
+                item.appendChild(childrenContainer);
+
+
+                const toggleBtn = item.querySelector('.toggle-children');
+                toggleBtn.addEventListener('click', () => {
+                    const isHidden = childrenContainer.style.display === 'none';
+                    childrenContainer.style.display = isHidden ? 'block' : 'none';
+                    toggleBtn.textContent = isHidden ? 'hide replies' : 'show replies';
+                });
+            }
+        }
+
+
+
+
+        let currentSort = 'top';
+        
+        async function loadThreadList(sortMethod = currentSort) {
+
+            document.getElementById('start-thread').style.display = 'inline-block';
+            document.getElementById('sort-controls').style.display = 'inline-block';
+            document.getElementById('new-thread-form').style.display = 'none';
+
+            currentSort = sortMethod;
+            const sorts = { new: ['created_at', false], old: ['created_at', true], top: ['upvotes', false] };
+            const [col, asc] = sorts[sortMethod];
+            document.getElementById('thread-list').innerHTML = '<p>loading threads...</p>';
+
+
+            const { data: threads, error } = await supabaseClient
+                .from('threads')
+                .select('*, thread_replies(count)')
+                .order(col, { ascending: asc })
+
+            if (error) {
+                console.error(error);
+                alert(error.message);
+                return;
+            }
+
+            const listEl = document.getElementById('thread-list');
+            listEl.innerHTML = '';
+            if (threads.length === 0) {
+                listEl.innerHTML = '<p>no threads yet</p>';
+                return;
+            }
+
+            threads.forEach(thread => {
+                const item = document.createElement('div');
+                item.className = 'thread-item';
+                item.innerHTML = `
+                <h3>${escapeHTML(thread.title)}</h3>
+                <p><em>by ${escapeHTML(thread.author_name)}</em></p>
+                <p>${escapeHTML(previewText(thread.content))}</p>
+                <p><small>posted on ${formatDate(thread.created_at)}</small></p>
+                <button class="upvote-thread">▲ ${thread.upvotes}</button>
+                <button class="reply-count">💬 ${thread.thread_replies[0]?.count || 0}</button>
+                `;
+                item.addEventListener('click', () => showThread(thread));
+                item.querySelector('.upvote-thread').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+
+                    const { data, error } = await supabaseClient
+                        .rpc('add_upvote_thread', { p_threads_id: thread.id });
+
+                    if (error) {
+                        console.error(error);
+                        alert(error.message);
+                        return;
+                    }
+
+                    thread.upvotes = data;
+                    item.querySelector('.upvote-thread').textContent = `▲ ${thread.upvotes}`;
+                });
+
+                listEl.appendChild(item);
+            });
+        }
+        async function loadReplyList() {
+            resetReplyForm();
+            const { data: replies, error } = await supabaseClient
+                .from('thread_replies')
+                .select('*')
+                .eq('thread_id', currentThread.id)
+                .order('created_at', { ascending: true });
+            
+            if (error) {
+                console.error(error);
+                alert(error.message);
+                return;
+            }
+
+            const listEl = document.getElementById('reply-list');
+            listEl.innerHTML = '';
+
+            const tree = buildReplyTree(replies);
+
+            tree.forEach(root => renderReply(root, listEl));
+        }
+
+        document.getElementById('start-thread').addEventListener('click', () => {
+            const form = document.getElementById('new-thread-form');
+            document.getElementById('start-thread').style.display = 'none';
+            document.getElementById('sort-controls').style.display = 'none';
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        });
+        document.getElementById('submit-thread').addEventListener('click', async () => {
+            const titleInput = document.getElementById('thread-title');
+            const authorInput = document.getElementById('thread-author');
+            const contentInput = document.getElementById('thread-content');
+
+            const title = titleInput.value.trim();
+            const author = authorInput.value.trim() || 'anon';
+            const content = contentInput.value.trim();
+
+            if (!title || !content) {
+                alert('please enter a title and a message for your thread');
+                return;
+            }
+            if (title.length > 150) {
+                alert('title must be 150 characters or less');
+                return;
+            }
+            if (content.length > 2000) {
+                alert('message must be 2000 characters or less');
+                return;
+            }
+
+            const submitButton = document.getElementById('submit-thread');
+            submitButton.disabled = true;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('threads')
+                    .insert({ title, author_name: author, content })
+                    .select();
+
+                if (error) {
+                    console.error(error);
+                    alert('failed to create thread');
+                    return;
+                }
+                titleInput.value = '';
+                authorInput.value = '';
+                contentInput.value = '';
+                const newThread = data[0];
+                loadThreadList();
+                showThread(newThread);
+            } finally {
+                submitButton.disabled = false;
+            }
+            document.getElementById('new-thread-form').style.display = 'none';
+            document.getElementById('start-thread').style.display = 'inline-block';
+            document.getElementById('sort-controls').style.display = 'inline-block';
+
+        });
+        document.getElementById('submit-reply').addEventListener('click', async () => {
+            const authorInput = document.getElementById('reply-author');
+            const contentInput = document.getElementById('reply-content');
+            const parentIdInput = document.getElementById('reply-parent-id');
+
+            const author = authorInput.value.trim() || 'anon';
+            const content = contentInput.value.trim();
+            const parent_reply_id = parentIdInput.value || null;
+
+            if (!content) {
+                alert('please enter a message for your reply');
+                return;
+            }
+            if (content.length > 1000) {
+                alert('message must be 1000 characters or less');
+                return;
+            }
+            const btn = document.getElementById('submit-reply');
+            btn.disabled = true; 
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('thread_replies')
+                    .insert({ thread_id: currentThread.id, author_name: author, content, parent_reply_id })
+                    .select();
+
+                if (error) {
+                    console.error(error);
+                    alert('failed to create reply');
+                    return;
+                }
+                authorInput.value = '';
+                contentInput.value = '';
+                parentIdInput.value = '';
+                loadReplyList();
+            } finally {
+                btn.disabled = false; 
+            }
+        });
+        document.getElementById('cancel-reply').addEventListener('click', () => {
+            resetReplyForm();
+        });
+        document.getElementById('cancel-thread').addEventListener('click', () => {
+            document.getElementById('new-thread-form').style.display = 'none';
+            document.getElementById('start-thread').style.display = 'inline-block';
+            document.getElementById('sort-controls').style.display = 'inline-block';
+        });
+        document.querySelectorAll('#sort-controls button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const mode = btn.dataset.sort;
+                loadThreadList(mode);
+            });
+        });
+        document.getElementById('back-to-board').addEventListener('click', () => {
+            document.getElementById('thread-view').style.display = 'none';
+            document.getElementById('board-view').style.display = 'block';
+            loadThreadList();
+        });
+        loadThreadList();
+    </script>
+</body>
+</html>

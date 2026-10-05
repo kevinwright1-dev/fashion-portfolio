@@ -12,6 +12,7 @@ body {
     background-attachment: fixed;
 }
 
+
 /* Navigation Styles */
 nav {
     text-align: center;
@@ -42,6 +43,20 @@ h1 {
     margin-bottom: 3rem;
 }
 
+h2 {
+    margin: 0.3rem 0 0 0;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-weight: 400;
+}
+
+p {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
 /* Grid Layout for Galleries (Closet, Fits, Inspo) */
 .gallery {
     display: grid;
@@ -68,7 +83,7 @@ h1 {
     color: #999;
 }
 
-/* Guestbook Form Styles */
+/* Forum Form Styles */
 form {
     max-width: 500px;
     margin: 0 auto 3rem auto;
@@ -103,6 +118,7 @@ button {
     letter-spacing: 1px;
     font-family: "Roboto Mono", monospace;
 }
+
 
 button:hover {
     background: #222;
