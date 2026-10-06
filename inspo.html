@@ -390,10 +390,10 @@
             document.getElementById('inspo-image').value = '';
             document.getElementById('inspo-desc').value = '';
             document.getElementById('inspo-form').style.display = 'none';
+            loadInspoList();
 
         });
 
-        const profileLink = document.getElementById('profile-link');
         const authLink = document.getElementById('auth-link');
         const inspoModal = document.getElementById('inspo-modal');
         const inspoModalBody = document.getElementById('inspo-modal-body');
@@ -415,28 +415,24 @@
                 card.className = 'inspo-card';
                 card.tabIndex = 0;
                 card.innerHTML = `
-                    <img src="${entry.image_url}" alt="${entry.title}">
-                    <div class="inspo-card-body">
-                        <div class="inspo-card-header">
-                            <h3>${entry.title}</h3>
-                            <small>${entry.author || 'anon'}</small>
+                    <div class="inspo-modal-layout">
+                        <div class="inspo-modal-media">
+                            <img id="inspo-modal-media" src="${entry.image_url}" alt="${entry.title}">
                         </div>
-                        <span class="inspo-card-cta">view</span>
+                        <div class="inspo-modal-copy">
+                            <h3>${entry.title}</h3>
+                            <div class="inspo-modal-caption">
+                                <span class="meta-label">Posted by</span>
+                                <span>${entry.author || 'anon'}</span>
+                                <p class="inspo-note" style = "display: none;">${entry.description || ''}</p>
+                            </div>
+                        </div>
                     </div>
                 `;
                 inspoGrid.appendChild(card);
             });
         }
 
-        document.querySelectorAll('.inspo-card').forEach((card) => {
-            card.addEventListener('click', () => openInspoModal(card));
-            card.addEventListener('keydown', (event) => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    openInspoModal(card);
-                }
-            });
-        });
 
         document.getElementById('close-inspo-modal-btn').addEventListener('click', closeInspoModal);
         document.querySelector('#inspo-modal .modal-backdrop').addEventListener('click', closeInspoModal);
@@ -447,30 +443,11 @@
             }
         });
 
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                profileLink.style.display = 'inline';
-                authLink.textContent = 'LOGOUT';
-                authLink.href = '#';
-                authLink.addEventListener('click', async (event) => {
-                    event.preventDefault();
-                    await supabaseClient.auth.signOut();
-                    window.location.reload();
-                });
-            } else {
-                profileLink.style.display = 'none';
-                authLink.style.display = 'inline';
-                authLink.textContent = 'LOGIN';
-                authLink.href = 'auth.html';
-            }
-        });
 
-        function openInspoModal(card) {
+        async function openInspoModal(card) {
             const image = card.querySelector('img');
             const name = card.querySelector('h3')?.textContent || '';
-            const tag = card.querySelector('.inspo-tag')?.textContent || '';
-            const note = card.querySelector('.inspo-note')?.textContent || '';
-            const focus = card.querySelector('.inspo-focus')?.textContent || '';
+            const desc = card.querySelector('.inspo-note')?.textContent || '';
 
             inspoModalBody.innerHTML = `
                 <div class="inspo-modal-layout">
@@ -478,14 +455,12 @@
                         <img src="${image.src}" alt="${image.alt}">
                     </div>
                     <div class="inspo-modal-copy">
-                        <span class="section-label">Inspiration Detail</span>
+                        <span class="section-label">Inspo details</span>
                         <h3>${name}</h3>
                         <div class="inspo-modal-caption">
-                            <span class="meta-label">Lane</span>
-                            <span>${tag}</span>
+                            <span class="meta-label">Description</span>
+                            <span>${desc}</span>
                         </div>
-                        <p class="inspo-modal-note">${note}</p>
-                        <p class="inspo-modal-focus">${focus}</p>
                     </div>
                 </div>
             `;
@@ -499,6 +474,12 @@
             inspoModalBody.innerHTML = '';
             document.body.style.overflow = 'auto';
         }
+        document.getElementById('inspo-grid').addEventListener('click', (event) => {
+            const card = event.target.closest('.inspo-card');
+            if (card) {
+                openInspoModal(card);
+            }
+        });
         loadInspoList();
     </script>
 </body>
