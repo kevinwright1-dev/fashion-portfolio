@@ -13,99 +13,7 @@
             margin: 0 auto;
         }
 
-        .inspo-hero {
-            display: grid;
-            grid-template-columns: minmax(0, 1.35fr) 320px;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .inspo-intro,
-        .inspo-meta,
-        .inspo-card {
-            background: rgba(17, 17, 17, 0.96);
-            border: 1px solid #222;
-        }
-
-        .inspo-intro {
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .inspo-intro::after {
-            content: "";
-            position: absolute;
-            inset: auto -80px -80px auto;
-            width: 220px;
-            height: 220px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
-            pointer-events: none;
-        }
-
-        .inspo-kicker,
-        .meta-label,
-        .section-label,
-        .inspo-tag {
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.75rem;
-        }
-
-        .inspo-kicker {
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .inspo-intro h1 {
-            text-align: left;
-            margin: 0 0 1rem 0;
-            font-size: clamp(2.2rem, 5vw, 4rem);
-            letter-spacing: 8px;
-        }
-
-        .inspo-intro p {
-            margin: 0;
-            max-width: 42rem;
-            color: #aaa;
-        }
-
-        .inspo-meta {
-            padding: 1.5rem;
-            display: grid;
-            gap: 1rem;
-            align-content: start;
-        }
-
-        .meta-item {
-            padding-bottom: 1rem;
-            border-bottom: 1px solid #222;
-        }
-
-        .meta-item:last-child {
-            padding-bottom: 0;
-            border-bottom: none;
-        }
-
-        .meta-label {
-            display: block;
-            margin-bottom: 0.35rem;
-        }
-
-        .meta-value {
-            display: block;
-            color: #fff;
-            font-size: 1.4rem;
-        }
-
-        .meta-copy {
-            display: block;
-            margin-top: 0.35rem;
-            color: #888;
-            font-size: 0.85rem;
-        }
-
+        /* ---------- Header ---------- */
         .inspo-section-head {
             display: flex;
             justify-content: space-between;
@@ -115,93 +23,98 @@
         }
 
         .inspo-section-head h2 {
-            margin: 0.3rem 0 0 0;
+            margin: 0.3rem 0 0;
             font-size: 1.1rem;
             text-transform: uppercase;
             letter-spacing: 4px;
             font-weight: 400;
         }
 
-        .inspo-section-copy {
-            margin: 0;
-            color: #777;
-            font-size: 0.85rem;
-            text-align: right;
-        }
-
+        /* ---------- Masonry grid ---------- */
         .inspo-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.25rem;
+            column-width: 200px;
+            column-gap: 1rem;
         }
 
+        /* loading / empty / error messages span every column */
+        .inspo-grid > .inspo-note {
+            column-span: all;
+        }
+
+        /* ---------- Cards ---------- */
         .inspo-card {
-            display: flex;
-            flex-direction: column;
-            min-height: 100%;
+            display: block;
+            margin: 0 0 1rem;
+            break-inside: avoid;
             overflow: hidden;
             cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            background: rgba(17, 17, 17, 0.96);
+            border: 1px solid #222;
+            transition: border-color 0.2s ease;
         }
 
-        .inspo-card:hover,
-        .inspo-card:focus-visible {
-            transform: translateY(-4px);
+        .inspo-card:hover {
             border-color: #3a3a3a;
         }
 
         .inspo-card:focus-visible {
+            border-color: #3a3a3a;
             outline: 1px solid #666;
             outline-offset: 2px;
         }
 
         .inspo-card img {
-            width: 100%;
-            aspect-ratio: 4 / 5;
-            object-fit: contain;
             display: block;
+            width: 100%;
+            height: auto;
             filter: grayscale(12%);
         }
 
         .inspo-card-body {
-            padding: 1rem;
+            padding: 0.75rem;
             display: grid;
-            gap: 0.75rem;
+            gap: 0.4rem;
         }
 
         .inspo-card-header {
             display: flex;
             justify-content: space-between;
             align-items: start;
-            gap: 1rem;
+            gap: 0.75rem;
         }
 
         .inspo-card h3 {
             margin: 0;
-            font-size: 1.05rem;
+            font-size: 0.95rem;
+        }
+
+        .inspo-card-cta {
+            color: #666;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
 
         .inspo-note {
             margin: 0;
             color: #bcbcbc;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
-        .inspo-focus {
-            margin: 0;
-            color: #8a8a8a;
-            font-size: 0.8rem;
-            padding-top: 0.75rem;
-            border-top: 1px solid #222;
-        }
-
-        .inspo-card-cta {
+        /* ---------- Shared label style (modal) ---------- */
+        .section-label,
+        .meta-label {
             color: #666;
-            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 2px;
+            font-size: 0.75rem;
         }
 
+        .meta-label {
+            display: block;
+        }
+
+        /* ---------- Modal ---------- */
         .inspo-modal-layout {
             display: grid;
             grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
@@ -213,11 +126,11 @@
         }
 
         .inspo-modal-media img {
+            display: block;
             width: 100%;
             height: 100%;
             max-height: calc(100vh - 2rem);
             object-fit: contain;
-            display: block;
         }
 
         .inspo-modal-copy {
@@ -233,22 +146,6 @@
             letter-spacing: 2px;
         }
 
-        .inspo-modal-copy p {
-            margin: 0;
-        }
-
-        .inspo-modal-note {
-            color: #d0d0d0;
-            font-size: 1rem;
-            line-height: 1.8;
-        }
-
-        .inspo-modal-focus {
-            color: #989898;
-            padding-top: 1rem;
-            border-top: 1px solid #222;
-        }
-
         .inspo-modal-caption {
             display: grid;
             gap: 0.4rem;
@@ -257,31 +154,31 @@
             border-bottom: 1px solid #222;
         }
 
-        .inspo-modal-caption span:last-child {
+        .inspo-modal-caption span:not(.meta-label) {
             color: #fff;
             font-size: 1.1rem;
         }
 
+        .inspo-modal-note {
+            margin: 0;
+            color: #d0d0d0;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        /* ---------- Mobile ---------- */
         @media (max-width: 900px) {
-            .inspo-hero {
-                grid-template-columns: 1fr;
-            }
-
-            .inspo-section-head {
-                align-items: start;
-                flex-direction: column;
-            }
-
-            .inspo-section-copy {
-                text-align: left;
-            }
-
             .inspo-modal-layout {
                 grid-template-columns: 1fr;
+                min-height: 0;
             }
 
             .inspo-modal-media img {
                 max-height: 60vh;
+            }
+
+            .inspo-modal-copy {
+                padding: 1.25rem;
             }
         }
     </style>
@@ -323,7 +220,6 @@
             <div class="modal-content">
                 <button class="modal-close" id="close-inspo-modal-btn" aria-label="Close inspiration detail">exit</button>
                 <div id="inspo-modal-body"></div>
-                </div>
             </div>
         </div>
 
@@ -333,6 +229,149 @@
 
 
     <script>
+        const inspoGrid = document.getElementById('inspo-grid');
+        const inspoEntries = new Map();
+
+        function showGridMessage(text) {
+            inspoGrid.replaceChildren();
+            const msg = document.createElement('p');
+            msg.className = 'inspo-note';
+            msg.textContent = text;
+            inspoGrid.appendChild(msg);
+        }
+        function createInspoCard(entry) {
+            const card = document.createElement('article');
+            card.className = 'inspo-card';
+            card.tabIndex = 0;
+            card.dataset.id = entry.id;
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `Open ${entry.title}`);
+
+            const img = document.createElement('img');
+            img.src = entry.image_url;
+            img.alt = entry.title;
+            img.loading = 'lazy';
+
+            const body = document.createElement('div');
+            body.className = 'inspo-card-body';
+            
+            const header = document.createElement('div');
+            header.className = 'inspo-card-header';
+            
+
+            const title = document.createElement('h3');
+            title.textContent = entry.title;
+
+            const cta = document.createElement('span');
+            cta.className = 'inspo-card-cta';
+            cta.textContent = 'view';
+
+            header.append(title, cta);
+
+            const author = document.createElement('p');
+            author.className = 'inspo-note';
+            author.textContent = `by ${entry.author || 'anon'}`;
+
+            body.append(header, author);
+            card.append(img, body);
+
+            return card;
+        }
+
+
+        async function loadInspoList() {
+            const { data, error } = await supabaseClient
+                .from('inspo_board')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Error fetching inspo entries:', error);
+                showGridMessage('Error loading inspo. ' + error.message);
+                return;
+            }
+
+            inspoEntries.clear();
+            inspoGrid.replaceChildren();
+
+            if (data.length === 0) {
+                showGridMessage('No inspo entries yet. Be the first to add one!');
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            data.forEach(entry => {
+                inspoEntries.set(String(entry.id), entry);
+                fragment.appendChild(createInspoCard(entry));
+            });
+            inspoGrid.appendChild(fragment);
+        }
+
+        let lastFocusedCard = null;
+        function openInspoModal(card) {
+            const entry = inspoEntries.get(card.dataset.id);
+            if (!entry) return;
+            lastFocusedCard = card;
+
+            const layout = document.createElement('div');
+            layout.className = 'inspo-modal-layout';
+
+            const media = document.createElement('div');
+            media.className = 'inspo-modal-media';
+            const img = document.createElement('img');
+            img.src = entry.image_url;
+            img.alt = entry.title;
+            media.appendChild(img);
+
+            const copy = document.createElement('div');
+            copy.className = 'inspo-modal-copy';
+
+            const label = document.createElement('span');
+            label.className = 'section-label';
+            label.textContent = 'Inspo';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = entry.title;
+
+            const caption = document.createElement('div');
+            caption.className = 'inspo-modal-caption';
+
+            const byLabel = document.createElement('span');
+            byLabel.className = 'meta-label';
+            byLabel.textContent = 'Posted by';
+            const byValue = document.createElement('span');
+            byValue.textContent = entry.author || 'anon';
+            caption.append(byLabel, byValue);
+
+            if (entry.description) {
+                const descLabel = document.createElement('span');
+                descLabel.className = 'meta-label';
+                descLabel.textContent = 'Description';
+                const descValue = document.createElement('p');
+                descValue.className = 'inspo-modal-note';
+                descValue.textContent = entry.description;
+                caption.append(descLabel, descValue);
+            }
+
+            copy.append(label, h3, caption);
+            layout.append(media, copy);
+            inspoModalBody.replaceChildren(layout);
+
+            inspoModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('close-inspo-modal-btn').focus();
+
+        }
+
+        function closeInspoModal() {
+            inspoModal.style.display = 'none';
+            inspoModalBody.replaceChildren();
+            document.body.style.overflow = 'auto';
+            lastFocusedCard?.focus();
+        }
+            
+        
+
         document.getElementById('add-inspo-btn').addEventListener('click', () => {
             const inspoForm = document.getElementById('inspo-form');
             inspoForm.style.display = inspoForm.style.display === 'none' ? 'block' : 'none';
@@ -358,7 +397,7 @@
             const { data: uploadData, error: uploadError } = await supabaseClient.storage
                 .from('inspo_img')
                 .upload(filePath, imageFile, {
-                    content: imageFile.type,
+                    contentType: imageFile.type,
                     upsert: false
                 });
 
@@ -398,40 +437,7 @@
         const inspoModal = document.getElementById('inspo-modal');
         const inspoModalBody = document.getElementById('inspo-modal-body');
 
-        async function loadInspoList() {
-            const { data, error } = await supabaseClient.from('inspo_board').select('*').order('created_at', { ascending: false });
 
-            if (error) {
-                console.error('Error fetching inspo entries:', error);
-                alert('Failed to load inspo board: ' + error.message);
-                return;
-            }
-
-            const inspoGrid = document.getElementById('inspo-grid');
-            inspoGrid.innerHTML = '';
-
-            data.forEach(entry => {
-                const card = document.createElement('div');
-                card.className = 'inspo-card';
-                card.tabIndex = 0;
-                card.innerHTML = `
-                    <div class="inspo-modal-layout">
-                        <div class="inspo-modal-media">
-                            <img id="inspo-modal-media" src="${entry.image_url}" alt="${entry.title}">
-                        </div>
-                        <div class="inspo-modal-copy">
-                            <h3>${entry.title}</h3>
-                            <div class="inspo-modal-caption">
-                                <span class="meta-label">Posted by</span>
-                                <span>${entry.author || 'anon'}</span>
-                                <p class="inspo-note" style = "display: none;">${entry.description || ''}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                inspoGrid.appendChild(card);
-            });
-        }
 
 
         document.getElementById('close-inspo-modal-btn').addEventListener('click', closeInspoModal);
@@ -443,37 +449,6 @@
             }
         });
 
-
-        async function openInspoModal(card) {
-            const image = card.querySelector('img');
-            const name = card.querySelector('h3')?.textContent || '';
-            const desc = card.querySelector('.inspo-note')?.textContent || '';
-
-            inspoModalBody.innerHTML = `
-                <div class="inspo-modal-layout">
-                    <div class="inspo-modal-media">
-                        <img src="${image.src}" alt="${image.alt}">
-                    </div>
-                    <div class="inspo-modal-copy">
-                        <span class="section-label">Inspo details</span>
-                        <h3>${name}</h3>
-                        <div class="inspo-modal-caption">
-                            <span class="meta-label">Description</span>
-                            <span>${desc}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            inspoModal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeInspoModal() {
-            inspoModal.style.display = 'none';
-            inspoModalBody.innerHTML = '';
-            document.body.style.overflow = 'auto';
-        }
         document.getElementById('inspo-grid').addEventListener('click', (event) => {
             const card = event.target.closest('.inspo-card');
             if (card) {
