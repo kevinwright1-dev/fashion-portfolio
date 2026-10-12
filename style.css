@@ -172,9 +172,9 @@ button:hover {
 
 .modal-content {
     position: relative;
-    width: min(1200px, calc(100% - 2rem));
-    max-height: calc(100vh - 2rem);
-    margin: 1rem auto;
+    width: min(860px, calc(100% - 2rem));   /* was min(1200px, ...) */
+    max-height: 85vh;                        /* was calc(100vh - 2rem) */
+    margin: 7.5vh auto;                      /* was 1rem auto */
     background: #111;
     border: 1px solid #333;
     overflow-y: auto;
