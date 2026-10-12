@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inspo</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
     <script src="config.js"></script>
     <style>
         .inspo-shell {
@@ -28,6 +28,44 @@
             text-transform: uppercase;
             letter-spacing: 4px;
             font-weight: 400;
+        }
+
+        /* ---------- Add form ---------- */
+        #inspo-form {
+            margin-bottom: 2rem;
+        }
+
+        #inspo-form label {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+        }
+
+        #inspo-form input[type="text"],
+        #inspo-form textarea {
+            display: block;
+            width: 100%;
+            max-width: 480px;
+            margin-bottom: 0.9rem;
+        }
+
+        #inspo-form input[type="file"] {
+            display: block;
+            margin-bottom: 0.9rem;
+        }
+
+        #inspo-form textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .inspo-form-actions {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 0.25rem;
         }
 
         /* ---------- Masonry grid ---------- */
@@ -191,19 +229,29 @@
 
     <main class="inspo-shell">
         <div class="inspo-section-head">
-            <div>
-                <h2>Inspo Board</h2>
-            </div>
-            <button id="add-inspo-btn">Add Inspo</button>
+            <h2>Inspo Board</h2>
+            <button id="add-inspo-btn" aria-expanded="false" aria-controls="inspo-form">Add Inspo</button>
         </div>
 
-        <div id="inspo-form" style ="display: none; margin-bottom: 1.5rem;">
-            <input type="text" id="inspo-author" placeholder="your name(optional)" maxlength="50">
-            <input type="text" id="inspo-title" placeholder="title" maxlength="150" required>
-            <input type="file" id="inspo-image" accept="image/png, image/jpeg, image/gif, image/webp" required>
-            <textarea id="inspo-desc" placeholder="description" maxlength="200"></textarea>
-            <button id="submit-inspo-btn">submit</button>
-            <button id="cancel-inspo-btn">cancel</button>
+        <div id="inspo-form" style="display: none;">
+            <label for="inspo-author">Your name (optional)</label>
+            <input type="text" id="inspo-author" maxlength="50">
+
+            <label for="inspo-title">Title</label>
+            <input type="text" id="inspo-title" maxlength="150">
+
+            <label for="inspo-image">Image (PNG, JPG, GIF or WebP, max 5 MB)</label>
+            <input type="file" id="inspo-image" accept="image/png, image/jpeg, image/gif, image/webp">
+
+            <label for="inspo-desc">Description</label>
+            <textarea id="inspo-desc" maxlength="200"></textarea>
+
+            <p id="inspo-status" class="inspo-note" role="status"></p>
+
+            <div class="inspo-form-actions">
+                <button id="submit-inspo-btn">submit</button>
+                <button id="cancel-inspo-btn">cancel</button>
+            </div>
         </div>
 
         <div class="inspo-grid" id="inspo-grid">
@@ -212,21 +260,36 @@
 
         <div id="inspo-modal" class="modal" style="display: none;">
             <div class="modal-backdrop"></div>
-            <div class="modal-content">
+            <div class="modal-content" role="dialog" aria-modal="true" aria-label="Inspiration detail">
                 <button class="modal-close" id="close-inspo-modal-btn" aria-label="Close inspiration detail">exit</button>
                 <div id="inspo-modal-body"></div>
             </div>
         </div>
-
-            
-
     </main>
-
 
     <script>
         const inspoGrid = document.getElementById('inspo-grid');
-        const inspoEntries = new Map();
+        const inspoModal = document.getElementById('inspo-modal');
+        const inspoModalBody = document.getElementById('inspo-modal-body');
+        const closeModalBtn = document.getElementById('close-inspo-modal-btn');
+        const addBtn = document.getElementById('add-inspo-btn');
+        const inspoForm = document.getElementById('inspo-form');
+        const submitBtn = document.getElementById('submit-inspo-btn');
+        const cancelBtn = document.getElementById('cancel-inspo-btn');
+        const statusEl = document.getElementById('inspo-status');
 
+        const inspoEntries = new Map();
+        let lastFocusedCard = null;
+
+        const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+        const EXT_BY_TYPE = {
+            'image/png': 'png',
+            'image/jpeg': 'jpg',
+            'image/gif': 'gif',
+            'image/webp': 'webp'
+        };
+
+        // ---------- Grid ----------
         function showGridMessage(text) {
             inspoGrid.replaceChildren();
             const msg = document.createElement('p');
@@ -234,6 +297,7 @@
             msg.textContent = text;
             inspoGrid.appendChild(msg);
         }
+
         function createInspoCard(entry) {
             const card = document.createElement('article');
             card.className = 'inspo-card';
@@ -243,16 +307,25 @@
             card.setAttribute('aria-label', `Open ${entry.title}`);
 
             const img = document.createElement('img');
-            img.src = entry.image_url;
             img.alt = entry.title;
             img.loading = 'lazy';
+            // Saved dimensions let the browser reserve space before the image loads
+            if (entry.width && entry.height) {
+                img.width = entry.width;
+                img.height = entry.height;
+            }
+            // Drop the card if the image URL is broken
+            img.addEventListener('error', () => {
+                inspoEntries.delete(String(entry.id));
+                card.remove();
+            });
+            img.src = entry.image_url;
 
             const body = document.createElement('div');
             body.className = 'inspo-card-body';
-            
+
             const header = document.createElement('div');
             header.className = 'inspo-card-header';
-            
 
             const title = document.createElement('h3');
             title.textContent = entry.title;
@@ -273,8 +346,9 @@
             return card;
         }
 
-
         async function loadInspoList() {
+            showGridMessage('Loading...');
+
             const { data, error } = await supabaseClient
                 .from('inspo_board')
                 .select('*')
@@ -282,7 +356,7 @@
 
             if (error) {
                 console.error('Error fetching inspo entries:', error);
-                showGridMessage('Error loading inspo. ' + error.message);
+                showGridMessage('Error loading inspo. Try refreshing the page.');
                 return;
             }
 
@@ -302,7 +376,7 @@
             inspoGrid.appendChild(fragment);
         }
 
-        let lastFocusedCard = null;
+        // ---------- Modal ----------
         function openInspoModal(card) {
             const entry = inspoEntries.get(card.dataset.id);
             if (!entry) return;
@@ -354,102 +428,136 @@
 
             inspoModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            document.getElementById('close-inspo-modal-btn').focus();
-
+            closeModalBtn.focus();
         }
 
         function closeInspoModal() {
             inspoModal.style.display = 'none';
             inspoModalBody.replaceChildren();
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = '';
             lastFocusedCard?.focus();
         }
-            
-        
 
-        document.getElementById('add-inspo-btn').addEventListener('click', () => {
-            const inspoForm = document.getElementById('inspo-form');
-            inspoForm.style.display = inspoForm.style.display === 'none' ? 'block' : 'none';
-        });
-        document.getElementById('cancel-inspo-btn').addEventListener('click', () => {
-            const inspoForm = document.getElementById('inspo-form');
-            inspoForm.style.display = 'none';
-        });
-        document.getElementById('submit-inspo-btn').addEventListener('click', async () => {
-            const author = document.getElementById('inspo-author').value;
-            const title = document.getElementById('inspo-title').value;
-            const imageFile = document.getElementById('inspo-image').files[0];
-            const desc = document.getElementById('inspo-desc').value;
+        // ---------- Add form ----------
+        function setFormOpen(open) {
+            inspoForm.style.display = open ? 'block' : 'none';
+            addBtn.setAttribute('aria-expanded', String(open));
+        }
 
-            if (!title || !imageFile) {
-                alert('please provide a title and an image.');
-                return;
-            }
-
-            const ext = imageFile.name.split('.').pop().toLowerCase();
-            const filePath = `public/${crypto.randomUUID()}.${ext}`;
-            
-            const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                .from('inspo_img')
-                .upload(filePath, imageFile, {
-                    contentType: imageFile.type,
-                    upsert: false
-                });
-
-            if (uploadError) {
-                console.error('Error uploading image:', uploadError);
-                alert('Failed to upload image: ' + uploadError.message);
-                return;
-            }
-
-            const { data: urlData} = supabaseClient.storage
-                .from('inspo_img')
-                .getPublicUrl(uploadData.path);
-
-            
-            const publicURL = urlData.publicUrl;
-
-            const { error: insertError } = await supabaseClient.from('inspo_board').insert([
-                { author, title, image_url: publicURL, description: desc }
-            ]);
-
-            if (insertError) {
-                console.error('Error inserting inspo entry:', insertError);
-                alert('Failed to add inspo: ' + insertError.message);
-                return;
-            }
-
+        function resetForm() {
             document.getElementById('inspo-author').value = '';
             document.getElementById('inspo-title').value = '';
             document.getElementById('inspo-image').value = '';
             document.getElementById('inspo-desc').value = '';
-            document.getElementById('inspo-form').style.display = 'none';
-            loadInspoList();
+            statusEl.textContent = '';
+        }
 
+        async function getImageSize(file) {
+            try {
+                const bitmap = await createImageBitmap(file);
+                const size = { width: bitmap.width, height: bitmap.height };
+                bitmap.close();
+                return size;
+            } catch {
+                return { width: null, height: null };
+            }
+        }
+
+        addBtn.addEventListener('click', () => {
+            setFormOpen(inspoForm.style.display === 'none');
         });
 
-        const authLink = document.getElementById('auth-link');
-        const inspoModal = document.getElementById('inspo-modal');
-        const inspoModalBody = document.getElementById('inspo-modal-body');
+        cancelBtn.addEventListener('click', () => {
+            setFormOpen(false);
+        });
 
+        submitBtn.addEventListener('click', async () => {
+            const author = document.getElementById('inspo-author').value.trim();
+            const title = document.getElementById('inspo-title').value.trim();
+            const imageFile = document.getElementById('inspo-image').files[0];
+            const desc = document.getElementById('inspo-desc').value.trim();
 
+            if (!title || !imageFile) {
+                statusEl.textContent = 'Please provide a title and an image.';
+                return;
+            }
 
+            const ext = EXT_BY_TYPE[imageFile.type];
+            if (!ext) {
+                statusEl.textContent = 'Please choose a PNG, JPG, GIF, or WebP image.';
+                return;
+            }
 
-        document.getElementById('close-inspo-modal-btn').addEventListener('click', closeInspoModal);
-        document.querySelector('#inspo-modal .modal-backdrop').addEventListener('click', closeInspoModal);
+            if (imageFile.size > MAX_SIZE) {
+                statusEl.textContent = 'Image must be under 5 MB.';
+                return;
+            }
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && inspoModal.style.display === 'block') {
-                closeInspoModal();
+            submitBtn.disabled = true;
+            statusEl.textContent = 'Uploading...';
+
+            try {
+                const { width, height } = await getImageSize(imageFile);
+                const filePath = `public/${crypto.randomUUID()}.${ext}`;
+
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from('inspo_img')
+                    .upload(filePath, imageFile, {
+                        contentType: imageFile.type,
+                        upsert: false
+                    });
+                if (uploadError) throw uploadError;
+
+                const { data: urlData } = supabaseClient.storage
+                    .from('inspo_img')
+                    .getPublicUrl(uploadData.path);
+
+                const { error: insertError } = await supabaseClient
+                    .from('inspo_board')
+                    .insert([{
+                        author,
+                        title,
+                        image_url: urlData.publicUrl,
+                        description: desc,
+                        width,
+                        height
+                    }]);
+                if (insertError) throw insertError;
+
+                resetForm();
+                setFormOpen(false);
+                loadInspoList();
+            } catch (err) {
+                console.error('Error adding inspo:', err);
+                statusEl.textContent = 'Something went wrong. Please try again.';
+            } finally {
+                submitBtn.disabled = false;
             }
         });
 
-        document.getElementById('inspo-grid').addEventListener('click', (event) => {
+        // ---------- Events ----------
+        closeModalBtn.addEventListener('click', closeInspoModal);
+        document.querySelector('#inspo-modal .modal-backdrop').addEventListener('click', closeInspoModal);
+
+        document.addEventListener('keydown', (event) => {
+            if (inspoModal.style.display !== 'block') return;
+
+            if (event.key === 'Escape') {
+                closeInspoModal();
+            } else if (event.key === 'Tab') {
+                // Focus trap: the close button is the only focusable element in the modal
+                event.preventDefault();
+                closeModalBtn.focus();
+            }
+        });
+
+        inspoGrid.addEventListener('click', (event) => {
             const card = event.target.closest('.inspo-card');
             if (card) {
                 openInspoModal(card);
             }
         });
+
         loadInspoList();
     </script>
 </body>
