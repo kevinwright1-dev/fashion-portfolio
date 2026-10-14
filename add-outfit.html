@@ -3,145 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Outfit - Fashion Closet</title>
+    <title>Add Outfit</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
     <script src="config.js"></script>
     <style>
-        .add-outfit-container {
-            max-width: 900px;
-            margin: 2rem auto;
-            background: #111;
-            padding: 2rem;
-            border: 1px solid #222;
-            border-radius: 8px;
-        }
-
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        .image-upload-section {
-            text-align: center;
-            padding: 2rem;
-            border: 2px dashed #333;
-            border-radius: 8px;
-            background: #0a0a0a;
-            position: relative;
-        }
-
-        .image-preview {
-            max-width: 100%;
-            max-height: 500px;
-            object-fit: contain;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .image-preview.show {
+        #outfit-form input[type="file"],
+        #outfit-form input[type="text"],
+        #outfit-form textarea {
             display: block;
+            margin-bottom: 0.9rem;
         }
 
-        .upload-placeholder {
-            padding: 3rem;
-            color: #666;
+        #outfit-form textarea {
+            resize: vertical;
+            min-height: 90px;
         }
 
-        .upload-placeholder.hidden {
-            display: none;
-        }
-
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .file-input-wrapper input[type="file"] {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-        }
-
-        .file-input-label {
-            display: inline-block;
-            padding: 1rem 2rem;
-            background: #000;
-            color: #fff;
-            border: 1px solid #fff;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-        }
-
-        .file-input-label:hover {
-            background: #222;
-        }
-
-        .success-message {
-            background: #00ff0020;
-            border: 1px solid #00ff00;
-            color: #6bff6b;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .error-message {
-            background: #ff000020;
-            border: 1px solid #ff0000;
-            color: #ff6b6b;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-
-        .form-actions button {
-            flex: 1;
-        }
-
-        .cancel-btn {
-            background: transparent;
-            border: 1px solid #666;
-            color: #666;
-        }
-
-        .cancel-btn:hover {
-            background: #111;
-            border-color: #999;
-            color: #999;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .next-btn {
-            background: #fff;
-            color: #000;
-            font-weight: bold;
-        }
-
-        .next-btn:hover {
-            background: #ddd;
-        }
-
-        @media (max-width: 768px) {
-            .two-column {
-                grid-template-columns: 1fr;
-            }
+        #status {
+            min-height: 1.4em;
+            color: #bcbcbc;
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -149,220 +31,123 @@
     <nav>
         <a href="index.html">HOME</a>
         <a href="closet.html">CLOSET</a>
-        <a href="fits.html">FIT</a>
+        <a href="outfits.html">OUTFITS</a>
         <a href="inspo.html">INSPO</a>
         <a href="forum.html">FORUM</a>
-        <a href="profile.html">PROFILE</a>
+        <a href="profile.html" id="profile-link" style="display:none;">PROFILE</a>
+        <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <div class="add-outfit-container">
-        <h1 style="text-align: center; margin-bottom: 2rem;">Share Your Fit</h1>
+    <main>
+        <h2 style="text-align: center; margin-bottom: 1rem">Create Outfit</h2>
+        <form id="outfit-form">
+            <label for="image">Photo (PNG, JPG, GIF or WebP, max 5 MB):</label>
+            <input type="file" id="image" name="image" accept="image/gif, image/jpeg, image/png, image/webp" required>
 
-        <div id="message-container"></div>
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" maxlength="150" required>
 
-        <div class="two-column">
-            <!-- Left: Image Upload -->
-            <div>
-                <h3 style="margin-bottom: 1rem;">Outfit Photo</h3>
-                <div class="image-upload-section">
-                    <img id="image-preview" class="image-preview" src="" alt="Preview">
-                    <div id="upload-placeholder" class="upload-placeholder">
-                        <p style="font-size: 1.5rem; margin-bottom: 1rem;">📸</p>
-                        <p>Upload your fit pic</p>
-                    </div>
-                    <div class="file-input-wrapper">
-                        <label class="file-input-label">
-                            Choose Photo
-                            <input type="file" id="image-input" accept="image/*" required>
-                        </label>
-                    </div>
-                    <p style="font-size: 0.75rem; color: #666; margin-top: 0.5rem;">Max 10MB • JPG, PNG, GIF, WEBP</p>
-                </div>
-            </div>
+            <label for="outfit-author">Your Name (Optional):</label>
+            <input type="text" id="outfit-author" name="outfit-author" maxlength="50">
 
-            <!-- Right: Outfit Details -->
-            <div>
-                <h3 style="margin-bottom: 1rem;">Details</h3>
-                <form id="outfit-form">
-                    <div class="form-group">
-                        <label for="title">Title: *</label>
-                        <input type="text" id="title" placeholder="e.g., Downtown Vibes" required>
-                    </div>
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" maxlength="100">
 
-                    <div class="form-group">
-                        <label for="description">Description:</label>
-                        <textarea id="description" rows="4" placeholder="Tell us about this fit..."></textarea>
-                    </div>
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" maxlength="500"></textarea>
 
-                    <div class="form-group">
-                        <label for="date-worn">Date Worn:</label>
-                        <input type="date" id="date-worn">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="occasion">Occasion:</label>
-                        <input type="text" id="occasion" placeholder="e.g., Concert, Date Night, Casual">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="location">Location:</label>
-                        <input type="text" id="location" placeholder="e.g., NYC, Atlanta">
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" class="cancel-btn" id="cancel-btn">Cancel</button>
-                        <button type="submit" class="next-btn" id="submit-btn">Post Outfit</button>
-                    </div>
-
-                    <p style="font-size: 0.8rem; color: #666; text-align: center; margin-top: 1rem;">
-                        💡 After posting, you can tag items from your closet!
-                    </p>
-                </form>
-            </div>
-        </div>
-    </div>
+            <p id="status" role="status"></p>
+            <button type="submit" id="submit-btn">Add Outfit</button>
+        </form>
+    </main>
 
     <script>
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        let currentUser = null;
-        let selectedFile = null;
+        const form = document.getElementById('outfit-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const statusEl = document.getElementById('status');
 
-        // Initialize
-        init();
+        const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+        const EXT_BY_TYPE = {
+            'image/png': 'png',
+            'image/jpeg': 'jpg',
+            'image/gif': 'gif',
+            'image/webp': 'webp'
+        };
 
-        async function init() {
-            // Check auth
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session) {
-                window.location.href = 'auth.html';
-                return;
+        async function getImageSize(file) {
+            try {
+                const bitmap = await createImageBitmap(file);
+                const size = { width: bitmap.width, height: bitmap.height };
+                bitmap.close();
+                return size;
+            } catch {
+                return { width: null, height: null };
             }
-
-            currentUser = session.user;
         }
 
-        // Image preview handler
-        document.getElementById('image-input').addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+        // Using the form's submit event lets the browser enforce `required` first
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
 
-            selectedFile = file;
+            const imageFile = document.getElementById('image').files[0];
+            const title = document.getElementById('title').value.trim();
+            const location = document.getElementById('location').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const author = document.getElementById('outfit-author').value.trim();
 
-            // Validate file size (10MB)
-            if (file.size > 10 * 1024 * 1024) {
-                showMessage('Image must be less than 10MB', 'error');
-                selectedFile = null;
+            if (!title || !imageFile) {
+                statusEl.textContent = 'Please add a title and select an image.';
                 return;
             }
 
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                showMessage('Please upload an image file', 'error');
-                selectedFile = null;
+            const ext = EXT_BY_TYPE[imageFile.type];
+            if (!ext) {
+                statusEl.textContent = 'Unsupported image type. Use PNG, JPEG, GIF, or WebP.';
                 return;
             }
 
-            // Show preview
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const preview = document.getElementById('image-preview');
-                preview.src = e.target.result;
-                preview.classList.add('show');
-                document.getElementById('upload-placeholder').classList.add('hidden');
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Form submit handler
-        document.getElementById('outfit-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            if (!selectedFile) {
-                showMessage('Please upload a photo', 'error');
+            if (imageFile.size > MAX_SIZE) {
+                statusEl.textContent = 'Image must be under 5 MB.';
                 return;
             }
 
-            const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Uploading...';
+            statusEl.textContent = 'Uploading...';
 
             try {
-                showMessage('Uploading outfit...', 'info');
-
-                // Upload image to storage
-                const fileExt = selectedFile.name.split('.').pop();
-                const fileName = `${currentUser.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const { width, height } = await getImageSize(imageFile);
+                const filePath = `public/${crypto.randomUUID()}.${ext}`;
 
                 const { data: uploadData, error: uploadError } = await supabaseClient.storage
-                    .from('outfits')
-                    .upload(fileName, selectedFile, {
-                        cacheControl: '3600',
-                        upsert: false
+                    .from('outfit_img')
+                    .upload(filePath, imageFile, {
+                        upsert: false,
+                        contentType: imageFile.type
                     });
-
                 if (uploadError) throw uploadError;
 
-                // Get public URL
-                const { data: { publicUrl } } = supabaseClient.storage
-                    .from('outfits')
-                    .getPublicUrl(fileName);
+                const { data: urlData } = supabaseClient.storage
+                    .from('outfit_img')
+                    .getPublicUrl(uploadData.path);
 
-                // Get form data
-                const title = document.getElementById('title').value.trim();
-                const description = document.getElementById('description').value.trim();
-                const dateWorn = document.getElementById('date-worn').value;
-                const occasion = document.getElementById('occasion').value.trim();
-                const location = document.getElementById('location').value.trim();
+                const { error: insertError } = await supabaseClient.from('outfits').insert([{
+                    title,
+                    location,
+                    description,
+                    img_url: urlData.publicUrl,   
+                    author_name: author,
+                    width,
+                    height
+                }]);
+                if (insertError) throw insertError;
 
-                // Insert into database
-                const { data, error } = await supabaseClient
-                    .from('outfits')
-                    .insert([{
-                        user_id: currentUser.id,
-                        title,
-                        description: description || null,
-                        date_worn: dateWorn || null,
-                        occasion: occasion || null,
-                        location: location || null,
-                        image_url: publicUrl
-                    }])
-                    .select();
-
-                if (error) throw error;
-
-                showMessage('Outfit posted successfully!', 'success');
-
-                // Redirect to tag page or fits page
-                setTimeout(() => {
-                    // For now, go to fits page. Later we'll add tagging
-                    window.location.href = `tag-outfit.html?id=${data[0].id}`;
-                }, 1000);
-
+                window.location.href = 'outfits.html';
             } catch (error) {
-                console.error('Error posting outfit:', error);
-                showMessage('Error posting outfit: ' + error.message, 'error');
+                console.error('Error adding outfit:', error);
+                statusEl.textContent = 'There was an error adding the outfit. Please try again.';
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Post Outfit';
             }
         });
-
-        // Cancel button
-        document.getElementById('cancel-btn').addEventListener('click', () => {
-            window.location.href = 'fits.html';
-        });
-
-        // Message display helper
-        function showMessage(message, type = 'info') {
-            const container = document.getElementById('message-container');
-            const className = type === 'error' ? 'error-message' : 'success-message';
-            container.innerHTML = `<div class="${className}">${message}</div>`;
-
-            if (type === 'info') {
-                setTimeout(() => {
-                    container.innerHTML = '';
-                }, 3000);
-            }
-        }
     </script>
 </body>
 </html>

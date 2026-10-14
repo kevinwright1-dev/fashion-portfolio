@@ -199,7 +199,7 @@
     <nav>
         <a href="index.html">HOME</a>
         <a href="closet.html">CLOSET</a>
-        <a href="fits.html">FIT</a>
+        <a href="outfits.html">OUTFITS</a>
         <a href="inspo.html">INSPO</a>
         <a href="forum.html">FORUM</a>
         <a href="profile.html">PROFILE</a>
@@ -255,7 +255,7 @@
         const outfitId = urlParams.get('id');
 
         if (!outfitId) {
-            window.location.href = 'fits.html';
+            window.location.href = 'outfits.html';
         }
 
         // Initialize
@@ -291,7 +291,7 @@
             } catch (error) {
                 console.error('Error loading outfit:', error);
                 alert('Error loading outfit');
-                window.location.href = 'fits.html';
+                window.location.href = 'outfits.html';
             }
         }
 
@@ -423,12 +423,12 @@
         // Finish button
         document.getElementById('finish-btn').addEventListener('click', async () => {
             await saveTags();
-            window.location.href = 'fits.html';
+            window.location.href = 'outfits.html';
         });
 
         // Skip button
         document.getElementById('skip-btn').addEventListener('click', () => {
-            window.location.href = 'fits.html';
+            window.location.href = 'outfits.html';
         });
 
         async function saveTags() {

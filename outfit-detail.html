@@ -505,7 +505,7 @@
         const outfitId = urlParams.get('id');
 
         if (!outfitId) {
-            window.location.href = 'fits.html';
+            window.location.href = 'outfits.html';
         }
 
         const returnUrl = `outfit-detail.html?id=${encodeURIComponent(outfitId)}`;
@@ -902,7 +902,7 @@
                 if (error) throw error;
 
                 alert('Outfit deleted!');
-                window.location.href = 'fits.html';
+                window.location.href = 'outfits.html';
 
             } catch (error) {
                 console.error('Error deleting outfit:', error);

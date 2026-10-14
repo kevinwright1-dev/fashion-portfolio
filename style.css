@@ -44,7 +44,7 @@ h1 {
 }
 
 h2 {
-    margin: 0.3rem 0 0 0;
+    margin: 0.3rem 0 0;
     font-size: 1.1rem;
     text-transform: uppercase;
     letter-spacing: 4px;
@@ -57,7 +57,7 @@ p {
     white-space: pre-wrap;
 }
 
-/* Grid Layout for Galleries (Closet, Fits, Inspo) */
+/* Grid Layout for Galleries (Closet, Outfits, Inspo) */
 .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -156,7 +156,26 @@ button:hover {
     color: #ff4d4d;
 }
 
-/* Shared modal frame for closet, fits, and inspo */
+/* Shared form field sizing for forms such as Inspo and Forum */
+.form-control[type="text"],
+textarea.form-control {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: 0.9rem;
+}
+
+.form-control[type="file"] {
+    display: block;
+    margin-bottom: 0.9rem;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 90px;
+}
+
+/* Shared modal frame for closet, outfits, and inspo */
 .modal {
     position: fixed;
     inset: 0;

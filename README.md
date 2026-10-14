@@ -16,7 +16,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 * **Inventory Management:** Upload clothing with metadata (brand, size, price, category).
 * **Filtering:** Dynamic gallery view with category-based filtering (Tops, Shoes, etc.).
 
-### **Outfit Sharing ("Fits")**
+### **Outfit Sharing**
 * **Interactive Tagging:** A custom-built system where users click photos to tag specific closet items.
 * **Visual Markers:** Interactive, numbered tag indicators on outfit photos.
 * **Outfit Details:** Dedicated pages showing full outfit descriptions, occasion details, and clickable item previews.
@@ -30,7 +30,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 * **Social Interaction:** Implementing Like/Unlike and a Comment system for outfits.
 * **Community:** Follow/Unfollow functionality and personalized activity feeds.
-* **Discovery:** Explore page for trending fits and new users.
+* **Discovery:** Explore page for trending outfits and new users.
 * **Analytics:** Cost-per-wear calculator and wardrobe value tracking.
 
 ---
