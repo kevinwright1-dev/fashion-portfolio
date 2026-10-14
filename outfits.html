@@ -111,6 +111,12 @@
             font-size: 0.85rem;
         }
 
+        .outfit-upvote {
+            justify-self: start;
+            padding: 0.35rem 0.65rem;
+            font-size: 0.8rem;
+        }
+
         .outfit-modal-layout {
             display: grid;
             grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
@@ -174,6 +180,10 @@
             line-height: 1.8;
         }
 
+        .outfit-modal-upvote {
+            justify-self: start;
+        }
+
         @media (max-width: 900px) {
             .outfit-modal-layout {
                 grid-template-columns: 1fr;
@@ -219,9 +229,8 @@
     </div>
 
     <div id="empty-state" class="empty-state" style="display: none;">
-        <p style="font-size: 3rem;">👔</p>
         <p>No outfits yet</p>
-        <a href="add-outfit.html" class="add-outfit-btn">Share Your First Outfit</a>
+        <a href="add-outfit.html" class="add-outfit-btn">Share Outfit</a>
     </div>
     <!-- Modal Overlay -->
     <div id="outfit-modal" class="modal" style="display: none;">
@@ -275,7 +284,7 @@
         function renderOutfits(sortBy) {
             const sorted = [...allOutfits];
             if (sortBy === 'old') sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            else if (sortBy === 'top') sorted.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+            else if (sortBy === 'top') sorted.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
             else sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             outfits.clear();
@@ -310,8 +319,14 @@
                 author.textContent = `by ${outfit.author_name || 'anon'}`;
                 author.className = 'outfit-card-author';
 
+                const upvoteButton = document.createElement('button');
+                upvoteButton.type = 'button';
+                upvoteButton.className = 'outfit-upvote';
+                upvoteButton.dataset.outfitId = String(outfit.id);
+                upvoteButton.textContent = `▲ ${outfit.upvotes || 0}`;
+
                 header.append(h3, cta);
-                body.append(header, author);
+                body.append(header, author, upvoteButton);
                 card.append(img, body);
                 fragment.appendChild(card);
             });
@@ -377,12 +392,47 @@
                 caption.append(descriptionLabel, descriptionValue);
             }
 
-            copy.append(label, title, caption);
+            const upvoteButton = document.createElement('button');
+            upvoteButton.type = 'button';
+            upvoteButton.className = 'outfit-upvote outfit-modal-upvote';
+            upvoteButton.dataset.outfitId = String(outfit.id);
+            upvoteButton.textContent = `▲ ${outfit.upvotes || 0}`;
+            upvoteButton.addEventListener('click', () => addOutfitUpvote(outfit, upvoteButton));
+
+            copy.append(label, title, caption, upvoteButton);
             layout.append(media, copy);
             modalBody.replaceChildren(layout);
             outfitModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
             closeModalBtn.focus();
+        }
+
+        async function addOutfitUpvote(outfit, button) {
+            const buttons = [...document.querySelectorAll('.outfit-upvote')]
+                .filter(upvoteButton => upvoteButton.dataset.outfitId === String(outfit.id));
+            buttons.forEach(upvoteButton => {
+                upvoteButton.disabled = true;
+            });
+
+            try {
+                const { data, error } = await supabaseClient
+                    .rpc('add_upvote_outfit', { p_outfits_id: outfit.id });
+
+                if (error) throw error;
+
+                outfit.upvotes = data;
+                buttons.forEach(upvoteButton => {
+                    upvoteButton.textContent = `▲ ${outfit.upvotes}`;
+                });
+            } catch (error) {
+                console.error('Error upvoting outfit:', error);
+                alert(error.message || 'Unable to upvote this outfit.');
+            } finally {
+                buttons.forEach(upvoteButton => {
+                    upvoteButton.disabled = false;
+                });
+                if (button.isConnected) button.focus();
+            }
         }
 
         function closeModal() {
@@ -405,6 +455,14 @@
         });
 
         outfitsGallery.addEventListener('click', (event) => {
+            const upvoteButton = event.target.closest('.outfit-upvote');
+            if (upvoteButton) {
+                event.stopPropagation();
+                const outfit = outfits.get(upvoteButton.dataset.outfitId);
+                if (outfit) addOutfitUpvote(outfit, upvoteButton);
+                return;
+            }
+
             const card = event.target.closest('.outfit-card');
             if (card) openModal(card.dataset.id, card);
         });
