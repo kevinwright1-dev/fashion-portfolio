@@ -167,6 +167,8 @@ textarea.form-control {
 
 .form-control[type="file"] {
     display: block;
+    width: 100%;
+    max-width: 480px;
     margin-bottom: 0.9rem;
 }
 
