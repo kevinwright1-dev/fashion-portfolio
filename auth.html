@@ -2,87 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up / Login - Fashion Closet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>Sign in - Fashion Closet</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="config.js"></script>
-    <style>
-        .auth-container {
-            max-width: 450px;
-            margin: 4rem auto;
-            background: #111;
-            padding: 3rem;
-            border: 1px solid #222;
-            border-radius: 8px;
-        }
-        
-        .auth-tabs {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            border-bottom: 1px solid #333;
-        }
-        
-        .auth-tab {
-            padding: 1rem;
-            cursor: pointer;
-            color: #666;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-        
-        .auth-tab.active {
-            color: #fff;
-            border-bottom-color: #fff;
-        }
-        
-        .auth-form {
-            display: none;
-        }
-        
-        .auth-form.active {
-            display: block;
-        }
-        
-        .error-message {
-            background: #ff000020;
-            border: 1px solid #ff0000;
-            color: #ff6b6b;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        
-        .success-message {
-            background: #00ff0020;
-            border: 1px solid #00ff00;
-            color: #6bff6b;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-        
-        .username-hint {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 0.25rem;
-        }
-        
-        .loading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-    </style>
+    <link rel="stylesheet" href="auth.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"
+        integrity="sha384-K1nraABOP/zFehpLIUksXebbs7jMpB8gYMlb+uhVKZcWT/9Vkq1+qhv6ndC+1Yuz"
+        crossorigin="anonymous" defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
+    <script src="config.js" defer></script>
+    <script src="auth.js" defer></script>
 </head>
 <body>
-    <nav>
+    <nav aria-label="Main navigation">
         <a href="index.html">HOME</a>
         <a href="closet.html">CLOSET</a>
         <a href="outfits.html">OUTFITS</a>
@@ -90,259 +23,127 @@
         <a href="forum.html">FORUM</a>
     </nav>
 
-    <div class="auth-container">
-        <h1 style="text-align: center; margin-bottom: 2rem; font-size: 2rem;">welcome</h1>
-        
-        <div class="auth-tabs">
-            <div class="auth-tab active" data-tab="signup">sign up</div>
-            <div class="auth-tab" data-tab="login">login</div>
+    <main class="auth-container">
+        <div class="auth-tabs" role="tablist" aria-label="Account access">
+            <button type="button" class="auth-tab active" id="signup-tab" role="tab" aria-controls="signup-panel" aria-selected="true" data-tab="signup">sign up</button>
+            <button type="button" class="auth-tab" id="login-tab" role="tab" aria-controls="login-panel" aria-selected="false" data-tab="login">login</button>
         </div>
 
-        <div id="error-container"></div>
-        <div id="success-container"></div>
+        <div class="auth-content">
+            <div id="error-container" class="notice error" role="alert" aria-live="assertive" hidden></div>
+            <div id="success-container" class="notice success" role="status" aria-live="polite" hidden></div>
 
-        <!-- Sign Up Form -->
-        <form id="signup-form" class="auth-form active">
-            <div class="form-group">
-                <label for="signup-email">email:</label>
-                <input type="email" id="signup-email" required>
-            </div>
+            <section id="signup-panel" role="tabpanel" aria-labelledby="signup-tab">
+                <form id="signup-form" novalidate>
+                    <div class="form-group">
+                        <label for="signup-email">email</label>
+                        <input type="email" id="signup-email" name="email" autocomplete="email" maxlength="254" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-username">username</label>
+                        <input type="text" id="signup-username" name="username" autocomplete="username" minlength="3" maxlength="30" pattern="[a-zA-Z0-9_]{3,30}" required>
+                        <p class="field-hint">3–30 characters: letters, numbers, and underscores</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">password</label>
+                        <div class="password-control">
+                            <input type="password" id="signup-password" name="new-password" autocomplete="new-password" minlength="15" maxlength="128" required>
+                            <button type="button" class="visibility-toggle" data-toggle-password="signup-password" aria-label="Show password" aria-pressed="false">show</button>
+                        </div>
+                        <p class="field-hint">Use 15 or more characters. Passphrases and paste are supported.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm">confirm password</label>
+                        <div class="password-control">
+                            <input type="password" id="signup-confirm" name="confirm-password" autocomplete="new-password" minlength="15" maxlength="128" required>
+                            <button type="button" class="visibility-toggle" data-toggle-password="signup-confirm" aria-label="Show password" aria-pressed="false">show</button>
+                        </div>
+                    </div>
+                    <div class="turnstile" data-turnstile></div>
+                    <button type="submit" class="submit-button">create account</button>
+                </form>
+            </section>
 
-            <div class="form-group">
-                <label for="signup-username">username:</label>
-                <input type="text" id="signup-username" pattern="[a-zA-Z0-9_]{3,30}" required>
-                <div class="username-hint">3-30 characters, letters, numbers, and underscores only</div>
-            </div>
+            <section id="login-panel" role="tabpanel" aria-labelledby="login-tab" hidden>
+                <form id="login-form" novalidate>
+                    <div class="form-group">
+                        <label for="login-email">email</label>
+                        <input type="email" id="login-email" name="email" autocomplete="username" maxlength="254" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">password</label>
+                        <div class="password-control">
+                            <input type="password" id="login-password" name="current-password" autocomplete="current-password" maxlength="128" required>
+                            <button type="button" class="visibility-toggle" data-toggle-password="login-password" aria-label="Show password" aria-pressed="false">show</button>
+                        </div>
+                    </div>
+                    <div class="turnstile" data-turnstile></div>
+                    <button type="submit" class="submit-button">login</button>
+                    <p class="auth-link-row"><a href="#" id="forgot-password-link">forgot password?</a></p>
+                </form>
+                <form id="reset-form" novalidate hidden>
+                    <p>Enter your email address. If an account exists, we’ll send password reset instructions.</p>
+                    <div class="form-group">
+                        <label for="reset-email">email</label>
+                        <input type="email" id="reset-email" name="email" autocomplete="email" maxlength="254" required>
+                    </div>
+                    <div class="turnstile" data-turnstile></div>
+                    <button type="submit" class="submit-button">send reset email</button>
+                    <p class="auth-link-row"><a href="#" id="back-to-login-link">back to login</a></p>
+                </form>
+            </section>
 
-            <div class="form-group">
-                <label for="signup-fullname">full name (optional):</label>
-                <input type="text" id="signup-fullname">
-            </div>
+            <section id="recovery-panel" hidden>
+                <h2>choose a new password</h2>
+                <p class="field-hint">Use at least 15 characters. Your password can be a passphrase.</p>
+                <form id="recovery-form" novalidate>
+                    <div class="form-group">
+                        <label for="recovery-password">new password</label>
+                        <div class="password-control">
+                            <input type="password" id="recovery-password" name="new-password" autocomplete="new-password" minlength="15" maxlength="128" required>
+                            <button type="button" class="visibility-toggle" data-toggle-password="recovery-password" aria-label="Show password" aria-pressed="false">show</button>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-button">update password</button>
+                </form>
+            </section>
 
-            <div class="form-group">
-                <label for="signup-password">password:</label>
-                <input type="password" id="signup-password" minlength="6" required>
-            </div>
+            <section id="account-panel" aria-labelledby="account-heading" hidden>
+                <h2 id="account-heading">account security</h2>
+                <p id="account-status" class="field-hint"></p>
+                <form id="email-change-form" novalidate>
+                    <div class="form-group">
+                        <label for="change-email">new email</label>
+                        <input type="email" id="change-email" name="email" autocomplete="email" maxlength="254" required>
+                    </div>
+                    <button type="submit" class="submit-button">change email</button>
+                </form>
+                <div class="security-actions">
+                    <button type="button" id="enroll-mfa-button">set up authenticator app</button>
+                    <button type="button" id="logout-button">log out everywhere</button>
+                </div>
+                <div id="mfa-enrollment" hidden>
+                    <p>Scan this QR code with your authenticator app. Keep the setup secret private.</p>
+                    <img id="mfa-qr" alt="TOTP enrollment QR code">
+                    <p id="mfa-secret" class="mfa-secret"></p>
+                    <form id="mfa-verify-form" novalidate>
+                        <label for="mfa-code">6-digit authenticator code</label>
+                        <input type="text" id="mfa-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+                        <button type="submit" class="submit-button">verify and enable MFA</button>
+                    </form>
+                </div>
+            </section>
 
-            <div class="form-group">
-                <label for="signup-confirm">confirm password:</label>
-                <input type="password" id="signup-confirm" minlength="6" required>
-            </div>
-
-            <button type="submit">Create Account</button>
-        </form>
-
-        <!-- Login Form -->
-        <form id="login-form" class="auth-form">
-            <div class="form-group">
-                <label for="login-email">email:</label>
-                <input type="email" id="login-email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="login-password">password:</label>
-                <input type="password" id="login-password" required>
-            </div>
-
-            <button type="submit">Login</button>
-        
-        </form>
-    </div>
-
-    <script>
-        // Initialize Supabase client
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        const redirectParam = new URLSearchParams(window.location.search).get('redirect');
-        const isSafeRedirect = redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//');
-        const postAuthRedirect = isSafeRedirect ? redirectParam : 'profile.html';
-
-        function goAfterAuth() {
-            window.location.href = postAuthRedirect;
-        }
-
-        // Check if user is already logged in
-        checkAuthStatus();
-
-        async function checkAuthStatus() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                goAfterAuth();
-            }
-        }
-
-        // Setup tab switching
-        document.querySelectorAll('.auth-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabName = this.getAttribute('data-tab');
-                switchTab(tabName, this);
-            });
-        });
-
-        function switchTab(tab, element) {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            document.getElementById(tab + '-form').classList.add('active');
-
-            clearMessages();
-        }
-
-        function showError(message) {
-            const container = document.getElementById('error-container');
-            container.innerHTML = `<div class="error-message">${message}</div>`;
-        }
-
-        function showSuccess(message) {
-            const container = document.getElementById('success-container');
-            container.innerHTML = `<div class="success-message">${message}</div>`;
-        }
-
-        function clearMessages() {
-            document.getElementById('error-container').innerHTML = '';
-            document.getElementById('success-container').innerHTML = '';
-        }
-
-        // Sign Up Form Handler
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearMessages();
-
-            console.log('Signup form submitted');
-
-            const email = document.getElementById('signup-email').value;
-            const username = document.getElementById('signup-username').value;
-            const fullName = document.getElementById('signup-fullname').value;
-            const password = document.getElementById('signup-password').value;
-            const confirmPassword = document.getElementById('signup-confirm').value;
-
-            if (password !== confirmPassword) {
-                showError('Passwords do not match');
-                return;
-            }
-
-            if (!/^[a-zA-Z0-9_]{3,30}$/.test(username)) {
-                showError('Username must be 3-30 characters and contain only letters, numbers, and underscores');
-                return;
-            }
-
-            // Check if username is already taken
-            const { data: existingUser } = await supabaseClient
-                .from('profiles')
-                .select('username')
-                .eq('username', username)
-                .single();
-
-            if (existingUser) {
-                showError('Username is already taken');
-                return;
-            }
-
-            const form = e.target;
-            form.classList.add('loading');
-
-            try {
-                console.log('Attempting signup...');
-                
-                const { data, error } = await supabaseClient.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            username,
-                            full_name: fullName
-                        }
-                    }
-                });
-
-                console.log('Signup response:', { data, error });
-
-                if (error) throw error;
-
-                showSuccess('Account created! Check your email to confirm your account.');
-                form.reset();
-
-                setTimeout(() => {
-                    goAfterAuth();
-                }, 2000);
-
-            } catch (error) {
-                console.error('Signup error:', error);
-                showError(error.message);
-            } finally {
-                form.classList.remove('loading');
-            }
-        });
-
-        // Login Form Handler
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            clearMessages();
-
-            console.log('Login form submitted');
-
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-
-            console.log('Email:', email);
-
-            const form = e.target;
-            form.classList.add('loading');
-
-            try {
-                console.log('Attempting login...');
-                
-                const { data, error } = await supabaseClient.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                console.log('Login response:', { data, error });
-
-                if (error) throw error;
-
-                showSuccess('Login successful! Redirecting...');
-                
-                setTimeout(() => {
-                    goAfterAuth();
-                }, 1000);
-
-            } catch (error) {
-                console.error('Login error:', error);
-                showError(error.message);
-            } finally {
-                form.classList.remove('loading');
-            }
-        });
-
-        // Forgot Password Handler
-        document.getElementById('forgot-password-link').addEventListener('click', async (e) => {
-            e.preventDefault();
-            const email = prompt('Enter your email address:');
-            if (!email) return;
-
-            clearMessages();
-
-            try {
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/reset-password.html'
-                });
-
-                if (error) throw error;
-
-                showSuccess('Password reset email sent! Check your inbox.');
-            } catch (error) {
-                showError(error.message);
-            }
-        });
-
-        // Listen for auth state changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            console.log('Auth state changed:', event);
-            if (event === 'SIGNED_IN') {
-                goAfterAuth();
-            }
-        });
-    </script>
+            <section id="mfa-challenge-panel" hidden>
+                <h2>verify your identity</h2>
+                <p>Enter the current code from your authenticator app.</p>
+                <form id="mfa-challenge-form" novalidate>
+                    <label for="mfa-challenge-code">6-digit authenticator code</label>
+                    <input type="text" id="mfa-challenge-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+                    <button type="submit" class="submit-button">verify</button>
+                </form>
+            </section>
+        </div>
+    </main>
 </body>
 </html>

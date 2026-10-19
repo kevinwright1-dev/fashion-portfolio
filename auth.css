@@ -1,0 +1,81 @@
+.auth-container {
+    width: min(100%, 520px);
+    margin: 0 auto;
+    border: 1px solid #222;
+    background: rgba(17, 17, 17, 0.96);
+}
+
+.auth-heading {
+    margin: 0;
+    padding: 1.5rem;
+    border-bottom: 1px solid #222;
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 4px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.auth-tabs { display: flex; border-bottom: 1px solid #222; }
+.auth-tab {
+    flex: 1;
+    padding: 0.9rem 1rem;
+    color: #666;
+    background: #000;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 0.833333rem;
+}
+.auth-tab.active { color: #fff; border-bottom-color: #fff; }
+.auth-tab:hover { background: #111; }
+.auth-tab:focus-visible, .auth-form :focus-visible, .security-actions :focus-visible {
+    outline: 1px solid #fff;
+    outline-offset: 2px;
+}
+
+.auth-content { padding: 1.5rem; }
+.auth-content [hidden] { display: none !important; }
+.auth-content form {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+.form-group { margin-bottom: 1.25rem; }
+.auth-content label { display: block; margin-bottom: 0.4rem; color: #bcbcbc; }
+.auth-content input {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 0.7rem;
+    border-color: #333;
+    font-size: 0.9rem;
+}
+.auth-content input:focus { border-color: #999; outline: 1px solid #666; }
+.password-control { display: flex; gap: 0.5rem; }
+.password-control input { flex: 1; min-width: 0; }
+.password-control .visibility-toggle { flex: 0 0 auto; padding: 0.55rem 0.75rem; }
+.auth-content .submit-button { width: 100%; margin-top: 0.25rem; padding: 0.7rem 1rem; font-size: 0.833333rem; }
+.auth-content button:disabled { opacity: 0.55; cursor: wait; }
+.field-hint { margin: 0.3rem 0 0; color: #777; font-size: 0.75rem; }
+.auth-link-row { margin: 1rem 0 0; text-align: right; }
+.auth-link-row a { color: #999; font-size: 0.75rem; }
+.auth-link-row a:hover { color: #fff; }
+.notice { margin-bottom: 1rem; padding: 0.85rem 1rem; border: 1px solid; font-size: 0.85rem; }
+.notice.error { color: #ff9b9b; background: #ff000018; border-color: #7a3333; }
+.notice.success { color: #b7edb7; background: #00ff0015; border-color: #315a31; }
+.turnstile { min-height: 0; margin: 0 0 1rem; }
+.turnstile:empty { display: none; }
+.security-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 1rem 0; }
+.security-actions button { flex: 1; }
+.mfa-secret { overflow-wrap: anywhere; padding: 0.75rem; border: 1px solid #333; color: #ddd; }
+#mfa-qr { display: block; max-width: min(100%, 220px); margin: 1rem auto; background: #fff; }
+#mfa-verify-form, #mfa-challenge-form { max-width: none; margin: 1rem 0 0; padding: 0; border: 0; background: transparent; }
+
+@media (max-width: 600px) {
+    .auth-content { padding: 1rem; }
+    .security-actions { flex-direction: column; }
+}
