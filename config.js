@@ -13,4 +13,4 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
 
 // Public Cloudflare Turnstile site key. Replace before enabling authentication.
 // The matching Turnstile secret belongs only in Supabase Dashboard settings.
-window.turnstileSiteKey = 'REPLACE_WITH_CLOUDFLARE_TURNSTILE_SITE_KEY';
+window.turnstileSiteKey = '0x4AAAAAAFhoZdGvjknSn772';
