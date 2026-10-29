@@ -30,6 +30,18 @@
             <label for="title">Title:</label>
             <input type="text" id="title" name="title" maxlength="150" required>
 
+            <label for="category">Category:</label>
+            <select name="category" id="category" required>
+                <option value="" disabled selected>Select a category</option>
+                <option value="all">All</option>
+                <option value="bottoms">Bottoms</option>
+                <option value="tops">Tops</option>
+                <option value="shoes">Shoes</option>
+                <option value="accessories">Accessories</option>
+                <option value="outwear">Outwear</option>
+                <option value="other">Other</option>
+            </select>
+
             <label for="brand">Brand:</label>
             <input type="text" id="brand" name="brand" maxlength="150" required>
 
@@ -74,6 +86,7 @@
 
             const imageFile = document.getElementById('image').files[0];
             const title = document.getElementById('title').value.trim();
+            const category = document.getElementById('category').value;
             const brand = document.getElementById('brand').value.trim();
             const description = document.getElementById('description').value.trim();
             const size = document.getElementById('size').value.trim();
@@ -115,6 +128,7 @@
 
                 const { error: insertError } = await supabaseClient.from('clothing_items').insert([{
                     title,
+                    category,
                     brand,
                     description,
                     img_url: urlData.publicUrl,   
