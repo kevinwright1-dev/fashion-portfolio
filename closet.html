@@ -1,72 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>the closet - Fashion Closet</title>
+    <title>Closet</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.0"></script>
     <script src="config.js"></script>
     <style>
-        .closet-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-        }
 
         .add-item-btn {
             background: #000;
             color: #fff;
             border: 1px solid #fff;
             padding: 0.7rem 2rem;
+            font-size: 0.833333rem;
+            line-height: normal;
             cursor: pointer;
+            text-transform: lowercase;
             letter-spacing: 1px;
+            font-family: "Roboto Mono", monospace;
             text-decoration: none;
             display: inline-block;
         }
-
-        .add-item-btn:hover {
-            background: #222;
-        }
-
-        .filters {
+        .closet-toolbar {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
             gap: 1rem;
+            margin-top: 1rem;
             margin-bottom: 2rem;
+        }
+        .sort-control {
+            display: flex;
             flex-wrap: wrap;
-        }
-
-        .filter-btn {
-            background: transparent;
-            color: #666;
-            border: 1px solid #333;
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            text-transform: lowercase;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-
-        .filter-btn.active {
-            background: #fff;
-            color: #000;
-            border-color: #fff;
-        }
-
-        .filter-btn:hover {
-            border-color: #999;
-            color: #999;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #666;
-        }
-
-        .empty-state p {
-            margin-bottom: 2rem;
+            justify-content: flex-end;
+            gap: 0.5rem;
         }
     </style>
 </head>
@@ -81,202 +49,235 @@
         <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <div class="closet-header">
-        <h1>closet:</h1>
-        <a href="add_item.html" class="add-item-btn" id="add-item-btn" style="display:none;">+ add item</a>
+    <div>
+        <h2>Closet</h2>
     </div>
 
-    <!-- Filters -->
-    <div class="filters">
-        <button class="filter-btn active" data-category="all">All</button>
-        <button class="filter-btn" data-category="tops">Tops</button>
-        <button class="filter-btn" data-category="bottoms">Bottoms</button>
-        <button class="filter-btn" data-category="shoes">Shoes</button>
-        <button class="filter-btn" data-category="accessories">Accessories</button>
-        <button class="filter-btn" data-category="outerwear">Outerwear</button>
-        <button class="filter-btn" data-category="other">Other</button>
-        <input
-            type="search"
-            id="closet-search"
-            placeholder="search item or brand..."
-            style="margin-left:auto; min-width:240px; max-width:360px;"
-        >
-    </div>
 
-    <div id="loading" style="text-align: center; padding: 2rem; color: #666;">
-        Loading closet...
-    </div>
+    <div class= "closet-toolbar">
 
-    <div class="gallery" id="items-gallery" style="display: none;">
-        <!-- Items will be loaded here -->
-    </div>
+        <a href="add_item.html" class="add-item-btn">add item</a>
 
-    <div id="empty-state" class="empty-state" style="display: none;">
-        <p>your closet is empty</p>
-        <a href="add_item.html" class="add-item-btn">add your first item</a>
-    </div>
-
-    <div id="item-modal" class="modal" style="display:none;">
-        <div class="modal-backdrop"></div>
-        <div class="modal-content" role="dialog" aria-modal="true" aria-label="Closet item details">
-            <button class="modal-close" type="button" onclick="closeModal()" aria-label="Close item details">exit</button>
-            <div id="modal-body"></div>
+        <div class="sort-control"> 
+            <button>all</button>
+            <button>bottoms</button>
+            <button>tops</button>
+            <button>shoes</button>
+            <button>accessories</button>
+            <button>outwear</button>
+            <button>other</button>
         </div>
     </div>
 
-    <script>
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        let currentUser = null;
-        let allItems = [];
-        let currentFilter = 'all';
+    <div class="gallery" id="closet-gallery">
+        <!--Closet loaded here-->
+    </div>
 
-        // Initialize
-        init();
+    <p id="status"></p>
 
-        document.querySelector('#item-modal .modal-backdrop').addEventListener('click', closeModal);
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && document.getElementById('item-modal').style.display === 'block') {
-                closeModal();
-            }
+    <div id="empty-state" style="display:block; text-align:center; padding: 4rem 2rem; color: #666">
+        <p>No items in closet</p>
+        <a href="add_item.html" class="add-item-btn">add item</a>
+    </div>
+
+    <div class="modal" id="closet-modal" style="display: none;">
+        <div class="modal-backdrop" id="modal-backdrop"></div>
+        <div class="modal-content" id="modal-content">
+            <button class="modal-close" id="close-modal-btn">exit</button>
+            <div id="modal-body">
+                <p style="text-align: center; padding: 3rem; color:#666"></p>
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+<script>
+    const closetGallery = document.getElementById("closet-gallery");
+    const closetModal = document.getElementById("closet-modal");
+    const statusEl = document.getElementById("status");
+    const emptyState = document.getElementById("empty-state");
+    const modalBody = document.getElementById("modal-body");
+    const closeModalBtn = document.getElementById('close-modal-btn');
+
+    const closet_items = new Map();
+    let allCloset = [];    
+    const sortControls = document.querySelectorAll("#sort.control button");
+
+    async function loadCloset() {
+
+        closetGallery.style.display = 'none';
+        emptyState.style.display = 'none';
+        statusEl.textContent = 'loading';
+        
+        const {data, error} = await supabaseClient.from('clothing_items').select('*');
+
+        if(error) {
+            console.log(error)
+            statusEl.textContent = 'Error Loading Closet';
+            return;
+        }
+
+        statusEl.textContent = '';
+
+        if(data.length==0){
+            emptyState.style.display = 'block';
+            return;
+        }
+
+        allCloset = data;
+
+
+        renderCloset('all');
+        
+    }
+
+    function renderCloset(sortBy) {
+        const sorted = [...allCloset]
+
+        closet_items.clear();
+
+        const fragment = document.createDocumentFragment();
+
+        sorted.forEach(clothing_items =>{
+            closet_items.set(String(clothing_items.id), clothing_items);
+            
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.dataset.id = clothing_items.id;
+
+            const img = document.createElement('img');
+            img.src = clothing_items.img_url;
+            img.alt = clothing_items.title;
+            img.loading = 'lazy';
+
+            const h3 = document.createElement('h3');
+            h3.textContent = clothing_items.title;
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+
+            const header = document.createElement('div');
+            header.className = 'card-header';
+
+            const cta = document.createElement('span');
+            cta.className = 'card-cta';
+            cta.textContent = 'view';
+
+            const brand = document.createElement('span');
+            brand.className = 'card-author';
+            brand.textContent = `brand: ${clothing_items.brand}`;
+
+            header.append(h3, brand);
+            body.append(header, cta);
+            card.append(img, body);
+            fragment.appendChild(card);
+
+
         });
 
-        async function init() {
-            // Check auth
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (session) {
-                currentUser = session.user;
-                document.getElementById('profile-link').style.display = 'inline';
-                document.getElementById('add-item-btn').style.display = 'inline-block';
-                document.getElementById('auth-link').style.display = 'none';
-            }
+        closetGallery.replaceChildren(fragment);
+        closetGallery.style.display = 'grid';
 
-            // Load items
-            await loadItems();
 
-            // Setup filter buttons
-            setupFilters();
-            document.getElementById('closet-search').addEventListener('input', applyFilters);
+    }
+
+    let lastFocusedCard = null;
+    function openModal(closetId, card) {
+        const clothing_item = closet_items.get(String(closetId));
+        if (!clothing_item) return;
+
+        lastFocusedCard = card;
+
+        const layout = document.createElement('div');
+        layout.className = 'modal-layout';
+
+        const media = document.createElement('div');
+        media.className = 'modal-media';
+        const img = document.createElement('img');
+        img.src = clothing_item.img_url;
+        img.alt = clothing_item.title;
+        media.appendChild(img);
+
+        const copy = document.createElement('div');
+        copy.className = 'modal-copy';
+
+        const label = document.createElement('span');
+        label.className = 'modal-label';
+        label.textContent = 'Clothing item';
+
+        const title = document.createElement('h3');
+        title.textContent = clothing_item.title;
+
+        const caption = document.createElement('div');
+        caption.className = 'modal-caption';
+
+        const brandLabel = document.createElement('span');
+        brandLabel.className = 'modal-meta-label';
+        brandLabel.textContent = 'Brand';
+        const brandValue = document.createElement('span');
+        brandValue.textContent = clothing_item.brand || 'Unknown';
+        caption.append(brandLabel, brandValue);
+
+        if (clothing_item.size) {
+            const sizeLabel = document.createElement('span');
+            sizeLabel.className = 'modal-meta-label';
+            sizeLabel.textContent = 'Size';
+            const sizeValue = document.createElement('span');
+            sizeValue.textContent = clothing_item.size;
+            caption.append(sizeLabel, sizeValue);
         }
 
-        async function loadItems() {
-            try {
-                let query = supabaseClient
-                    .from('clothing_items')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                // If user is logged in, show only their items
-                // Otherwise show all public items
-                if (currentUser) {
-                    query = query.eq('user_id', currentUser.id);
-                }
-
-                const { data, error } = await query;
-
-                if (error) throw error;
-
-                allItems = data || [];
-                displayItems(allItems);
-
-                document.getElementById('loading').style.display = 'none';
-
-            } catch (error) {
-                console.error('Error loading items:', error);
-                document.getElementById('loading').textContent = 'Error loading items';
-            }
+        if (clothing_item.description) {
+            const descriptionLabel = document.createElement('span');
+            descriptionLabel.className = 'modal-meta-label';
+            descriptionLabel.textContent = 'Description';
+            const descriptionValue = document.createElement('p');
+            descriptionValue.className = 'modal-description';
+            descriptionValue.textContent = clothing_item.description;
+            caption.append(descriptionLabel, descriptionValue);
         }
 
-        function displayItems(items) {
-            const gallery = document.getElementById('items-gallery');
-            const emptyState = document.getElementById('empty-state');
+        copy.append(label, title, caption);
+        layout.append(media, copy);
+        modalBody.replaceChildren(layout);
+        closetModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
 
-            if (items.length === 0) {
-                gallery.style.display = 'none';
-                emptyState.style.display = 'block';
-                return;
-            }
+    }
 
-            gallery.style.display = 'grid';
-            emptyState.style.display = 'none';
+    function closeModal() {
+        closetModal.style.display = 'none';
+        modalBody.replaceChildren();
+        document.body.style.overflow = '';
+        lastFocusedCard?.focus();
+    }
 
-            gallery.innerHTML = items.map(item => `
-                <div class="gallery-item" data-category="${item.category}">
-                    <img src="${item.image_url}" alt="${item.title}" onclick="viewItem('${item.id}')">
-                    <p><strong>${item.title}</strong></p>
-                    ${item.brand ? `<p style="font-size: 0.8rem; color: #666;">${item.brand}</p>` : ''}
-                    <p style="font-size: 0.75rem; color: #999; text-transform: uppercase;">${item.category}</p>
-                </div>
-            `).join('');
-        }
+    closeModalBtn.addEventListener('click', closeModal);
+    document.querySelector('#closet-modal .modal-backdrop').addEventListener('click', closeModal);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && closetModal.style.display === 'block') closeModal();
+    });
 
-        function setupFilters() {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Update active state
-                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
 
-                    // Filter items
-                    currentFilter = this.dataset.category;
-                    applyFilters();
-                });
-            });
-        }
+    closetGallery.addEventListener('click', (event) => {
+        const card = event.target.closest('.card');
+        if (card) openModal(card.dataset.id, card);
+    });
 
-        function applyFilters() {
-            const searchText = document.getElementById('closet-search').value.trim().toLowerCase();
 
-            const filtered = allItems.filter((item) => {
-                const categoryPass = currentFilter === 'all' || item.category === currentFilter;
-                const title = (item.title || '').toLowerCase();
-                const brand = (item.brand || '').toLowerCase();
-                const searchPass = !searchText || title.includes(searchText) || brand.includes(searchText);
-                return categoryPass && searchPass;
-            });
+    loadCloset();
 
-            displayItems(filtered);
-        }
+    
 
-        function viewItem(itemId) {
-            const item = allItems.find((closetItem) => String(closetItem.id) === String(itemId));
-            if (!item) return;
 
-            const modalBody = document.getElementById('modal-body');
-            const image = document.createElement('img');
-            image.className = 'closet-modal-image';
-            image.src = item.image_url;
-            image.alt = item.title || 'Closet item';
+</script>
 
-            const details = document.createElement('div');
-            details.className = 'closet-modal-copy';
 
-            const title = document.createElement('h2');
-            title.textContent = item.title || 'Untitled item';
-            details.append(title);
 
-            if (item.brand) {
-                const brand = document.createElement('p');
-                brand.textContent = item.brand;
-                details.append(brand);
-            }
 
-            if (item.category) {
-                const category = document.createElement('p');
-                category.textContent = item.category;
-                details.append(category);
-            }
 
-            modalBody.replaceChildren(image, details);
-            document.getElementById('item-modal').style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
 
-        function closeModal() {
-            document.getElementById('item-modal').style.display = 'none';
-            document.getElementById('modal-body').replaceChildren();
-            document.body.style.overflow = 'auto';
-        }
-    </script>
-</body>
 </html>

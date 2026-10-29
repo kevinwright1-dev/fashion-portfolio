@@ -237,6 +237,153 @@ textarea.form-control {
     padding: 1.5rem;
 }
 
+
+.card {
+    display: block;
+    margin: 0;
+    break-inside: avoid;
+    overflow: hidden;
+    cursor: pointer;
+    background: rgba(17, 17, 17, 0.96);
+    border: 1px solid #222;
+    transition: border-color 0.2s ease;
+}
+
+.gallery > .card {
+    align-self: start;
+}
+
+.card:hover {
+    border-color: #3a3a3a;
+}
+
+.card:focus-visible {
+    border-color: #3a3a3a;
+    outline: 1px solid #666;
+    outline-offset: 2px;
+}
+
+.card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: grayscale(12%);
+}
+
+.card-body {
+    padding: 0.75rem;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 0.75rem;
+}
+
+.card h3 {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.card-cta {
+    color: #666;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.card-author {
+    margin: 0;
+    color: #bcbcbc;
+    font-size: 0.85rem;
+}
+
+.upvote {
+    justify-self: start;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+}
+
+.modal-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+    min-height: 0;
+}
+
+.modal-media {
+    background: #050505;
+}
+
+.modal-media img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 75vh;
+    object-fit: contain;
+}
+
+.modal-copy {
+    padding: 1.25rem;
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+}
+
+.modal-label,
+.modal-meta-label {
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.75rem;
+}
+
+.modal-meta-label {
+    display: block;
+}
+
+.modal-copy h3 {
+    margin: 0;
+    font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+    letter-spacing: 2px;
+}
+
+.modal-caption {
+    display: grid;
+    gap: 0.4rem;
+    padding: 1rem 0;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+}
+
+.modal-caption span:not(.modal-meta-label) {
+    color: #fff;
+    font-size: 1.1rem;
+}
+
+.modal-description {
+    margin: 0;
+    color: #d0d0d0;
+    font-size: 1rem;
+    line-height: 1.8;
+}
+
+.modal-upvote {
+    justify-self: start;
+}
+
+@media (max-width: 900px) {
+    .modal-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-media img {
+        max-height: 50vh;
+    }
+}
+
 @media (max-width: 600px) {
     .modal-content {
         width: calc(100% - 1rem);
