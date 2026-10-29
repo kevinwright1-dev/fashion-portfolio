@@ -53,147 +53,6 @@
             align-items: center;
             margin-bottom: 2rem;
         }
-        .outfit-card {
-            display: block;
-            margin: 0 0 1rem;
-            break-inside: avoid;
-            overflow: hidden;
-            cursor: pointer;
-            background: rgba(17, 17, 17, 0.96);
-            border: 1px solid #222;
-            transition: border-color 0.2s ease;
-        }
-
-        .outfit-card:hover {
-            border-color: #3a3a3a;
-        }
-
-        .outfit-card:focus-visible {
-            border-color: #3a3a3a;
-            outline: 1px solid #666;
-            outline-offset: 2px;
-        }
-
-        .outfit-card img {
-            display: block;
-            width: 100%;
-            height: auto;
-            filter: grayscale(12%);
-        }
-
-        .outfit-card-body {
-            padding: 0.75rem;
-            display: grid;
-            gap: 0.4rem;
-        }
-
-        .outfit-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            gap: 0.75rem;
-        }
-
-        .outfit-card h3 {
-            margin: 0;
-            font-size: 0.95rem;
-        }
-
-        .outfit-card-cta {
-            color: #666;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .outfit-card-author {
-            margin: 0;
-            color: #bcbcbc;
-            font-size: 0.85rem;
-        }
-
-        .outfit-upvote {
-            justify-self: start;
-            padding: 0.35rem 0.65rem;
-            font-size: 0.8rem;
-        }
-
-        .outfit-modal-layout {
-            display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
-            min-height: 0;
-        }
-
-        .outfit-modal-media {
-            background: #050505;
-        }
-
-        .outfit-modal-media img {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-height: 75vh;
-            object-fit: contain;
-        }
-
-        .outfit-modal-copy {
-            padding: 1.25rem;
-            display: grid;
-            align-content: start;
-            gap: 1rem;
-        }
-
-        .outfit-modal-label,
-        .outfit-modal-meta-label {
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 0.75rem;
-        }
-
-        .outfit-modal-meta-label {
-            display: block;
-        }
-
-        .outfit-modal-copy h3 {
-            margin: 0;
-            font-size: clamp(1.3rem, 2.2vw, 1.8rem);
-            letter-spacing: 2px;
-        }
-
-        .outfit-modal-caption {
-            display: grid;
-            gap: 0.4rem;
-            padding: 1rem 0;
-            border-top: 1px solid #222;
-            border-bottom: 1px solid #222;
-        }
-
-        .outfit-modal-caption span:not(.outfit-modal-meta-label) {
-            color: #fff;
-            font-size: 1.1rem;
-        }
-
-        .outfit-modal-description {
-            margin: 0;
-            color: #d0d0d0;
-            font-size: 1rem;
-            line-height: 1.8;
-        }
-
-        .outfit-modal-upvote {
-            justify-self: start;
-        }
-
-        @media (max-width: 900px) {
-            .outfit-modal-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .outfit-modal-media img {
-                max-height: 50vh;
-            }
-        }
-
     </style>
 </head>
 <body>
@@ -222,7 +81,7 @@
         </div>
     </div>
 
-    <p id="status" role="status" style="text-align: center; color: #bcbcbc; font-size: 0.85rem;"></p>
+    <p id="status" role="status" style="text-align: center; color: #666;"></p>
 
     <div class="gallery" id="outfits-gallery" style="display: none;">
         <!-- Outfits will be loaded here -->
@@ -294,7 +153,7 @@
                 outfits.set(String(outfit.id), outfit);
 
                 const card = document.createElement('div');
-                card.className = 'outfit-card';
+                card.className = 'card';
                 card.dataset.id = outfit.id;
 
                 const img = document.createElement('img');
@@ -306,22 +165,22 @@
                 h3.textContent = outfit.title;
 
                 const body = document.createElement('div');
-                body.className = 'outfit-card-body';
+                body.className = 'card-body';
 
                 const header = document.createElement('div');
-                header.className = 'outfit-card-header';
+                header.className = 'card-header';
 
                 const cta = document.createElement('span');
-                cta.className = 'outfit-card-cta';
+                cta.className = 'card-cta';
                 cta.textContent = 'view';
 
                 const author = document.createElement('span');
                 author.textContent = `by ${outfit.author_name || 'anon'}`;
-                author.className = 'outfit-card-author';
+                author.className = 'card-author';
 
                 const upvoteButton = document.createElement('button');
                 upvoteButton.type = 'button';
-                upvoteButton.className = 'outfit-upvote';
+                upvoteButton.className = 'upvote';
                 upvoteButton.dataset.outfitId = String(outfit.id);
                 upvoteButton.textContent = `▲ ${outfit.upvotes || 0}`;
 
@@ -344,30 +203,30 @@
             lastFocusedCard = card;
 
             const layout = document.createElement('div');
-            layout.className = 'outfit-modal-layout';
+            layout.className = 'modal-layout';
 
             const media = document.createElement('div');
-            media.className = 'outfit-modal-media';
+            media.className = 'modal-media';
             const img = document.createElement('img');
             img.src = outfit.img_url;
             img.alt = outfit.title;
             media.appendChild(img);
 
             const copy = document.createElement('div');
-            copy.className = 'outfit-modal-copy';
+            copy.className = 'modal-copy';
 
             const label = document.createElement('span');
-            label.className = 'outfit-modal-label';
+            label.className = 'modal-label';
             label.textContent = 'Outfit';
 
             const title = document.createElement('h3');
             title.textContent = outfit.title;
 
             const caption = document.createElement('div');
-            caption.className = 'outfit-modal-caption';
+            caption.className = 'modal-caption';
 
             const authorLabel = document.createElement('span');
-            authorLabel.className = 'outfit-modal-meta-label';
+            authorLabel.className = 'modal-meta-label';
             authorLabel.textContent = 'Posted by';
             const authorValue = document.createElement('span');
             authorValue.textContent = outfit.author_name || 'anon';
@@ -375,7 +234,7 @@
 
             if (outfit.location) {
                 const locationLabel = document.createElement('span');
-                locationLabel.className = 'outfit-modal-meta-label';
+                locationLabel.className = 'modal-meta-label';
                 locationLabel.textContent = 'Location';
                 const locationValue = document.createElement('span');
                 locationValue.textContent = outfit.location;
@@ -384,17 +243,17 @@
 
             if (outfit.description) {
                 const descriptionLabel = document.createElement('span');
-                descriptionLabel.className = 'outfit-modal-meta-label';
+                descriptionLabel.className = 'modal-meta-label';
                 descriptionLabel.textContent = 'Description';
                 const descriptionValue = document.createElement('p');
-                descriptionValue.className = 'outfit-modal-description';
+                descriptionValue.className = 'modal-description';
                 descriptionValue.textContent = outfit.description;
                 caption.append(descriptionLabel, descriptionValue);
             }
 
             const upvoteButton = document.createElement('button');
             upvoteButton.type = 'button';
-            upvoteButton.className = 'outfit-upvote outfit-modal-upvote';
+            upvoteButton.className = 'upvote modal-upvote';
             upvoteButton.dataset.outfitId = String(outfit.id);
             upvoteButton.textContent = `▲ ${outfit.upvotes || 0}`;
             upvoteButton.addEventListener('click', () => addOutfitUpvote(outfit, upvoteButton));
@@ -404,11 +263,10 @@
             modalBody.replaceChildren(layout);
             outfitModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            closeModalBtn.focus();
         }
 
         async function addOutfitUpvote(outfit, button) {
-            const buttons = [...document.querySelectorAll('.outfit-upvote')]
+            const buttons = [...document.querySelectorAll('.upvote')]
                 .filter(upvoteButton => upvoteButton.dataset.outfitId === String(outfit.id));
             buttons.forEach(upvoteButton => {
                 upvoteButton.disabled = true;
@@ -455,7 +313,7 @@
         });
 
         outfitsGallery.addEventListener('click', (event) => {
-            const upvoteButton = event.target.closest('.outfit-upvote');
+            const upvoteButton = event.target.closest('.upvote');
             if (upvoteButton) {
                 event.stopPropagation();
                 const outfit = outfits.get(upvoteButton.dataset.outfitId);
@@ -463,7 +321,7 @@
                 return;
             }
 
-            const card = event.target.closest('.outfit-card');
+            const card = event.target.closest('.card');
             if (card) openModal(card.dataset.id, card);
         });
 
