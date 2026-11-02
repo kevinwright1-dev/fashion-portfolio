@@ -55,6 +55,11 @@
     </div>
 
 
+    <div id="closet-login-prompt" style="text-align:center; padding: 4rem 2rem; color: #666" hidden>
+        <p>Log in to use closet</p>
+        <a href="auth.html?redirect=closet.html" class="add-item-btn">log in</a>
+    </div>
+
     <div id="closet-page" hidden>
 
     <div class= "closet-toolbar">
@@ -281,8 +286,11 @@
 
     let currentUser = null;
     async function initCloset() {
-        currentUser = await requireUser();
-        if (!currentUser) return;
+        currentUser = await getSignedInUser();
+        if (!currentUser) {
+            document.getElementById('closet-login-prompt').hidden = false;
+            return;
+        }
         document.getElementById('closet-page').hidden = false;
         await loadCloset();
     }
