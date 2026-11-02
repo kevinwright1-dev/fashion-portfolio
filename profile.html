@@ -52,7 +52,6 @@
     </div>
 
     <script>
-        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
         let currentUser = null;
 
         // Check authentication
@@ -107,7 +106,7 @@
                             .from('profiles')
                             .insert([{
                                 id: currentUser.id,
-                                username: currentUser.email.split('@')[0] + '_' + Date.now(),
+                                username: currentUser.user_metadata?.username || currentUser.email.split('@')[0] + '_' + Date.now(),
                                 full_name: currentUser.user_metadata?.full_name || '',
                                 avatar_url: currentUser.user_metadata?.avatar_url || 'https://via.placeholder.com/150'
                             }])

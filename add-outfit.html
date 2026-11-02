@@ -53,9 +53,6 @@
             <label for="title">Title:</label>
             <input type="text" id="title" name="title" maxlength="150" required>
 
-            <label for="outfit-author">Your Name (Optional):</label>
-            <input type="text" id="outfit-author" name="outfit-author" maxlength="50">
-
             <label for="location">Location:</label>
             <input type="text" id="location" name="location" maxlength="100">
 
@@ -99,7 +96,6 @@
             const title = document.getElementById('title').value.trim();
             const location = document.getElementById('location').value.trim();
             const description = document.getElementById('description').value.trim();
-            const author = document.getElementById('outfit-author').value.trim();
 
             if (!title || !imageFile) {
                 statusEl.textContent = 'Please add a title and select an image.';
@@ -141,7 +137,6 @@
                     location,
                     description,
                     img_url: urlData.publicUrl,   
-                    author_name: author,
                     width,
                     height
                 }]);

@@ -216,9 +216,6 @@
         </div>
 
         <div id="inspo-form" style="display: none;">
-            <label for="inspo-author">Your name (optional)</label>
-            <input type="text" id="inspo-author" class="form-control" maxlength="50">
-
             <label for="inspo-title">Title</label>
             <input type="text" id="inspo-title" class="form-control" maxlength="150">
 
@@ -426,7 +423,6 @@
         }
 
         function resetForm() {
-            document.getElementById('inspo-author').value = '';
             document.getElementById('inspo-title').value = '';
             document.getElementById('inspo-image').value = '';
             document.getElementById('inspo-desc').value = '';
@@ -453,7 +449,6 @@
         });
 
         submitBtn.addEventListener('click', async () => {
-            const author = document.getElementById('inspo-author').value.trim();
             const title = document.getElementById('inspo-title').value.trim();
             const imageFile = document.getElementById('inspo-image').files[0];
             const desc = document.getElementById('inspo-desc').value.trim();
@@ -496,7 +491,6 @@
                 const { error: insertError } = await supabaseClient
                     .from('inspo_board')
                     .insert([{
-                        author,
                         title,
                         image_url: urlData.publicUrl,
                         description: desc,

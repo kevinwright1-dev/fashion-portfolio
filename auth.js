@@ -97,6 +97,8 @@ function resetCaptcha(form) {
 }
 
 function requireCaptcha(form) {
+    // undefined means "no CAPTCHA needed"; null means the challenge is still incomplete.
+    if (window.captchaEnabled === false) return undefined;
     const token = captchaTokenFor(form);
     if (!token) {
         showError('Complete the CAPTCHA challenge before continuing.');
@@ -106,6 +108,7 @@ function requireCaptcha(form) {
 }
 
 function initializeTurnstile() {
+    if (window.captchaEnabled === false) return;
     const siteKey = window.turnstileSiteKey;
     turnstileConfigured = typeof siteKey === 'string' && siteKey.length > 0 && !siteKey.includes('REPLACE_WITH') && Boolean(window.turnstile);
     if (!turnstileConfigured) {
@@ -263,7 +266,7 @@ document.getElementById('signup-form').addEventListener('submit', async (event) 
     clearMessages();
     const form = event.currentTarget;
     const token = requireCaptcha(form);
-    if (!token) return;
+    if (token === null) return;
 
     const emailInput = document.getElementById('signup-email');
     const usernameInput = document.getElementById('signup-username');
@@ -302,7 +305,7 @@ document.getElementById('login-form').addEventListener('submit', async (event) =
     clearMessages();
     const form = event.currentTarget;
     const token = requireCaptcha(form);
-    if (!token || !form.reportValidity()) return;
+    if (token === null || !form.reportValidity()) return;
     const email = normalizedEmail(document.getElementById('login-email'));
     const password = document.getElementById('login-password').value;
     const restore = setPending(form, true);
@@ -326,7 +329,7 @@ document.getElementById('reset-form').addEventListener('submit', async (event) =
     clearMessages();
     const form = event.currentTarget;
     const token = requireCaptcha(form);
-    if (!token || !form.reportValidity()) return;
+    if (token === null || !form.reportValidity()) return;
     const email = normalizedEmail(document.getElementById('reset-email'));
     const restore = setPending(form, true);
     try {

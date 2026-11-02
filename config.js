@@ -12,3 +12,5 @@ const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey, {
 
 
 window.turnstileSiteKey = '0x4AAAAAAFhoZdGvjknSn772';
+// Set to true (and turn CAPTCHA protection back on in Supabase) to re-enable Turnstile.
+window.captchaEnabled = false;
