@@ -9,7 +9,7 @@ const authPanels = {
     mfa: document.getElementById('mfa-challenge-panel')
 };
 const allowedDestinations = new Set([
-    'index.html', 'profile.html', 'closet.html', 'outfits.html', 'inspo.html', 'forum.html'
+    'index.html', 'profile.html', 'closet.html', 'add_item.html', 'outfits.html', 'inspo.html', 'forum.html'
 ]);
 const query = new URLSearchParams(window.location.search);
 const requestedRedirect = query.get('redirect');

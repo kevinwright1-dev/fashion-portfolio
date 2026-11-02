@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2.45.0"></script>
     <script src="config.js"></script>
+    <script src="session.js"></script>
     <style>
 
         .add-item-btn {
@@ -54,11 +55,13 @@
     </div>
 
 
+    <div id="closet-page" hidden>
+
     <div class= "closet-toolbar">
 
         <a href="add_item.html" class="add-item-btn">add item</a>
 
-        <div class="sort-control"> 
+        <div class="sort-control">
             <button>all</button>
             <button>bottoms</button>
             <button>tops</button>
@@ -92,6 +95,8 @@
 
     </div>
 
+    </div>
+
 </body>
 
 <script>
@@ -112,7 +117,7 @@
         emptyState.style.display = 'none';
         statusEl.textContent = 'loading';
         
-        const {data, error} = await supabaseClient.from('clothing_items').select('*');
+        const {data, error} = await supabaseClient.from('clothing_items').select('*').eq('user_id', currentUser.id);
 
         if(error) {
             console.log(error)
@@ -274,9 +279,16 @@
         if (card) openModal(card.dataset.id, card);
     });
 
-    loadCloset();
+    let currentUser = null;
+    async function initCloset() {
+        currentUser = await requireUser();
+        if (!currentUser) return;
+        document.getElementById('closet-page').hidden = false;
+        await loadCloset();
+    }
+    initCloset();
 
-    
+
 
 
 </script>

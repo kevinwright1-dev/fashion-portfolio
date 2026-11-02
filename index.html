@@ -25,34 +25,7 @@
     </div>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script>
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-    const profileLink = document.getElementById('profile-link');
-    const authLink = document.getElementById('auth-link');
-
-    // Check if user is logged in and update nav
-    supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-            profileLink.style.display = 'inline';
-            authLink.textContent = 'LOGOUT';
-            authLink.href = '#';
-            authLink.addEventListener('click', async (event) => {
-                event.preventDefault();
-                await logout();
-            });
-        } else {
-            profileLink.style.display = 'none';
-            authLink.style.display = 'inline';
-            authLink.textContent = 'LOGIN';
-            authLink.href = 'auth.html';
-        }
-    });
-
-    async function logout() {
-        await supabase.auth.signOut();
-        window.location.reload();
-    }
-</script>
+<script src="session.js"></script>
 
 </body>
 </html>

@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
     <script src="config.js"></script>
+    <script src="session.js"></script>
     <style>
     </style>
 </head>
@@ -62,6 +63,9 @@
         const submitBtn = document.getElementById('submit-btn');
         const statusEl = document.getElementById('status');
 
+        let currentUser = null;
+        requireUser().then((user) => { currentUser = user; });
+
         const MAX_SIZE = 5 * 1024 * 1024;
         const EXT_BY_TYPE = {
             'image/png': 'png',
@@ -83,6 +87,11 @@
 
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
+
+            if (!currentUser) {
+                statusEl.textContent = 'Checking your login. Please try again in a moment.';
+                return;
+            }
 
             const imageFile = document.getElementById('image').files[0];
             const title = document.getElementById('title').value.trim();
@@ -134,7 +143,8 @@
                     img_url: urlData.publicUrl,   
                     size,
                     width,
-                    height
+                    height,
+                    user_id: currentUser.id
                 }]);
                 if (insertError) throw insertError;
 
