@@ -1,4 +1,4 @@
-# Fashion Portfolio
+# Klozet
 
 A full-stack website serving as a creative portfolio for my personal style. Inspired by the alt 2010s alternative and hip-hop aesthetic of artists like Playboi Carti and Chief Keef.
 
@@ -6,7 +6,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 ---
 
-[View the live site here](https://kevinfashion-portfolio.netlify.app/)
+[View the live site here](https://klozet.us/)
 
 ### **User System**
 * **Authentication:** Full email/password flow via Supabase (Signup, Login, Password Reset).
@@ -23,7 +23,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 
 *   **Frontend:** HTML5, CSS, JavaScript
 *   **Backend & Database:** Supabase 
-*   **Deployment:** Netlify
+*   **Deployment:** Cloudflare Pages
 *   **Font:** Roboto Mono 
 
 ## Planned Features (In Progress)
@@ -40,7 +40,7 @@ A full-stack website serving as a creative portfolio for my personal style. Insp
 * **Frontend:** JavaScript, HTML5, CSS.
 * **Backend:** Supabase.
 * **Storage:** Supabase Storage (Buckets for avatars, items, and outfits).
-* **Deployment:** Netlify.
+* **Deployment:** Cloudflare Pages.
 
 ---
 

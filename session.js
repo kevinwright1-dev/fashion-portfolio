@@ -12,7 +12,9 @@ async function requireUser() {
     const user = await getSignedInUser();
     if (!user) {
         const page = window.location.pathname.split('/').pop();
-        window.location.replace(`auth.html?redirect=${encodeURIComponent(page)}`);
+        // Cloudflare Pages serves clean URLs, but auth.js allow-lists the .html names.
+        const target = page && !page.includes('.') ? `${page}.html` : page;
+        window.location.replace(`auth.html?redirect=${encodeURIComponent(target)}`);
     }
     return user;
 }

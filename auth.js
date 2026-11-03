@@ -409,7 +409,7 @@ document.getElementById('enroll-mfa-button').addEventListener('click', async (ev
     button.disabled = true;
     clearMessages();
     try {
-        const { data, error } = await supabaseClient.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Fashion Closet authenticator' });
+        const { data, error } = await supabaseClient.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Klozet authenticator' });
         if (error) throw error;
         mfaEnrollmentFactorId = data.id;
         document.getElementById('mfa-qr').src = `data:image/svg+xml,${encodeURIComponent(data.totp.qr_code)}`;
