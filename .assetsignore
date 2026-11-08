@@ -1,0 +1,8 @@
+.git
+.gitignore
+.env
+.vscode
+scripts
+README.md
+test.html
+wrangler.jsonc

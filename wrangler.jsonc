@@ -1,0 +1,10 @@
+{
+  "name": "klozet",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "404"
+  },
+  // Required for `wrangler preview` on non-production branch builds. Can stay empty.
+  "previews": {}
+}
