@@ -21,8 +21,9 @@ async function requireUser() {
 
 async function updateNav() {
     const authLink = document.getElementById('auth-link');
-    if (!await getSignedInUser()) return;
-    document.getElementById('profile-link').style.display = 'inline';
+    const profileLink = document.getElementById('profile-link');
+    if (!authLink || !await getSignedInUser()) return;
+    if (profileLink) profileLink.style.display = 'inline';
     authLink.textContent = 'LOGOUT';
     authLink.href = '#';
     authLink.addEventListener('click', async (event) => {
