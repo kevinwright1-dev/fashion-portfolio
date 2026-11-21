@@ -229,7 +229,8 @@
             const authorLabel = document.createElement('span');
             authorLabel.className = 'modal-meta-label';
             authorLabel.textContent = 'Posted by';
-            const authorValue = makeProfileLink(outfit.author_name, outfit.user_id);
+            const authorValue = document.createElement('span');
+            authorValue.append(makeProfileLink(outfit.author_name, outfit.user_id));
             caption.append(authorLabel, authorValue);
 
             if (outfit.location) {
