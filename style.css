@@ -391,3 +391,15 @@ textarea.form-control {
         margin: 0.5rem auto;
     }
 }
+
+/* Clickable usernames that go to a profile */
+.profile-name-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+.profile-name-link:hover,
+.profile-name-link:focus-visible {
+    color: #fff;
+    border-bottom-color: currentColor;
+}

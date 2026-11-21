@@ -109,7 +109,7 @@
             currentThread = thread;
             document.getElementById('thread-display').innerHTML = `
                 <h3>${escapeHTML(thread.title)}</h3>
-                <p><em>posted by ${escapeHTML(thread.author_name)}</em></p>
+                <p><em>posted by ${authorLinkHTML(thread.author_name, thread.user_id)}</em></p>
                 <p>${escapeHTML(thread.content)}</p>
                 <p><small>posted on ${formatDate(thread.created_at)}</small></p>
                 <button class="upvote-thread">▲ ${thread.upvotes}</button>
@@ -144,6 +144,10 @@
             const div = document.createElement('div');
             div.textContent = str;
             return div.innerHTML;
+        }
+        // Username as a link to their profile (outerHTML is already escaped).
+        function authorLinkHTML(name, userId) {
+            return makeProfileLink(name, userId).outerHTML;
         }
         function formatDate(isoString) {
             const date = new Date(isoString);
@@ -184,7 +188,7 @@
 
 
             item.innerHTML = `
-                <p><em>${escapeHTML(reply.author_name)}</em></p>
+                <p><em>${authorLinkHTML(reply.author_name, reply.user_id)}</em></p>
                 <p>${escapeHTML(reply.content)}</p>
                 <p><small>${formatDate(reply.created_at)}</small></p>
                 <button class="upvote-reply">▲ ${reply.upvotes}</button>
@@ -281,13 +285,17 @@
                 item.className = 'thread-item';
                 item.innerHTML = `
                 <h3>${escapeHTML(thread.title)}</h3>
-                <p><em>by ${escapeHTML(thread.author_name)}</em></p>
+                <p><em>by ${authorLinkHTML(thread.author_name, thread.user_id)}</em></p>
                 <p>${escapeHTML(previewText(thread.content))}</p>
                 <p><small>posted on ${formatDate(thread.created_at)}</small></p>
                 <button class="upvote-thread">▲ ${thread.upvotes}</button>
                 <button class="reply-count">💬 ${thread.thread_replies[0]?.count || 0}</button>
                 `;
-                item.addEventListener('click', () => showThread(thread));
+                item.addEventListener('click', (e) => {
+                    // Let the username link go to the profile instead of opening the thread
+                    if (e.target.closest('a')) return;
+                    showThread(thread);
+                });
                 item.querySelector('.upvote-thread').addEventListener('click', async (e) => {
                     e.stopPropagation();
 

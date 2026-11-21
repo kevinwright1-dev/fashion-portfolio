@@ -176,8 +176,8 @@
                 cta.textContent = 'view';
 
                 const author = document.createElement('span');
-                author.textContent = `by ${outfit.author_name || 'anon'}`;
                 author.className = 'card-author';
+                author.append('by ', makeProfileLink(outfit.author_name, outfit.user_id));
 
                 const upvoteButton = document.createElement('button');
                 upvoteButton.type = 'button';
@@ -229,8 +229,7 @@
             const authorLabel = document.createElement('span');
             authorLabel.className = 'modal-meta-label';
             authorLabel.textContent = 'Posted by';
-            const authorValue = document.createElement('span');
-            authorValue.textContent = outfit.author_name || 'anon';
+            const authorValue = makeProfileLink(outfit.author_name, outfit.user_id);
             caption.append(authorLabel, authorValue);
 
             if (outfit.location) {
@@ -321,6 +320,9 @@
                 if (outfit) addOutfitUpvote(outfit, upvoteButton);
                 return;
             }
+
+            // Username links go to the profile instead of opening the modal
+            if (event.target.closest('a')) return;
 
             const card = event.target.closest('.card');
             if (card) openModal(card.dataset.id, card);

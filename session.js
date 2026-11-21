@@ -34,3 +34,19 @@ async function updateNav() {
 }
 
 document.addEventListener('DOMContentLoaded', updateNav);
+
+// Links a username to that user's profile page (profile.html?id=<user_id>).
+function profileUrl(userId) {
+    return `profile.html?id=${encodeURIComponent(userId)}`;
+}
+
+// Returns an <a> for a username, or a plain <span> if the post has no user_id.
+function makeProfileLink(name, userId) {
+    const el = document.createElement(userId ? 'a' : 'span');
+    el.textContent = name || 'anon';
+    if (userId) {
+        el.href = profileUrl(userId);
+        el.className = 'profile-name-link';
+    }
+    return el;
+}

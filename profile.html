@@ -58,6 +58,10 @@
             text-decoration: none;
             display: inline-block;
         }
+        .edit-profile-btn[hidden],
+        .section-header a[hidden] {
+            display: none;
+        }
         .edit-profile-btn:hover {
             background: #222;
         }
@@ -256,7 +260,7 @@
             <div class="profile-info">
                 <div class="name-row">
                     <h1 id="username">@username</h1>
-                    <a href="edit_profile.html" class="edit-profile-btn">edit profile</a>
+                    <a href="edit_profile.html" class="edit-profile-btn" id="edit-profile-btn" hidden>edit profile</a>
                 </div>
                 <div class="stats-row">
                     <div class="stat-box">
@@ -285,13 +289,13 @@
 
         <div class="section-header">
             <h2>recent outfits</h2>
-            <a href="outfits.html">view all →</a>
+            <a href="outfits.html" class="own-only" hidden>view all →</a>
         </div>
         <div class="gallery outfits-grid" id="recent-outfits-gallery"></div>
 
         <div class="section-header">
             <h2>recent klozet</h2>
-            <a href="closet.html">view all →</a>
+            <a href="closet.html" class="own-only" hidden>view all →</a>
         </div>
         <div class="gallery closet-grid" id="recent-closet-gallery"></div>
 
@@ -321,6 +325,8 @@
     const outfitCountEl = document.getElementById("outfit-count");
     const forumPostsCountEl = document.getElementById("forum-posts-count");
     let currentUser = null;
+    // Whose profile we're showing: ?id=<user_id> in the URL, or the signed-in user.
+    let profileUserId = null;
 
 
     async function loadProfile(){
@@ -329,18 +335,20 @@
         const { data: profile, error } = await supabaseClient
             .from('profiles')
             .select('*')
-            .eq('id', currentUser.id)
+            .eq('id', profileUserId)
             .maybeSingle();
 
-        if (error) { console.error(error); return; }
-        if (!profile) { usernameEl.textContent = 'profile not found'; return; }
+        if (error) { console.error(error); return false; }
+        if (!profile) { usernameEl.textContent = 'profile not found'; return false; }
+
+        document.title = `@${profile.username} - Profile`;
 
 
         usernameEl.textContent = `@${profile.username}`;
         avatarEl.src = profile.avatar_url||'pics/default-avatar.jpg';
         descEl.textContent = profile.bio || 'no bio yet';
         memberSinceEl.textContent = `member since: ${new Date(profile.created_at).toLocaleDateString()}`;
-
+        return true;
 
     }
 
@@ -358,7 +366,7 @@
         const { count, error } = await supabaseClient
             .from(table)
             .select('*', { count: 'exact', head: true })
-            .eq(column, currentUser.id);
+            .eq(column, profileUserId);
 
         if (error) {
             console.error(`count failed for ${table}:`, error);
@@ -421,7 +429,7 @@
         const { data: outfit, error } = await supabaseClient
             .from('outfits')
             .select('*')
-            .eq('user_id', currentUser.id)
+            .eq('user_id', profileUserId)
             .order('upvotes', { ascending: false, nullsFirst: false })
             .limit(1)
             .maybeSingle();
@@ -431,7 +439,9 @@
         if (!outfit) {
             const empty = document.createElement('p');
             empty.className = 'empty-message';
-            empty.textContent = 'no outfits yet — post one to feature it here';
+            empty.textContent = isOwnProfile()
+                ? 'no outfits yet — post one to feature it here'
+                : 'no outfits yet';
             container.replaceChildren(empty);
             return;
         }
@@ -485,7 +495,7 @@
         const { data: outfits, error } = await supabaseClient
             .from('outfits')
             .select('*')
-            .eq('user_id', currentUser.id)
+            .eq('user_id', profileUserId)
             .order('created_at', { ascending: false})
             .limit(3);
 
@@ -508,7 +518,7 @@
         const { data: items, error } = await supabaseClient
             .from('clothing_items')
             .select('*')
-            .eq('user_id', currentUser.id)
+            .eq('user_id', profileUserId)
             .order('created_at', { ascending: false})
             .limit(3);
 
@@ -532,7 +542,7 @@
         const { data: items, error } = await supabaseClient
             .from('clothing_items')
             .select('category, brand')
-            .eq('user_id', currentUser.id);
+            .eq('user_id', profileUserId);
 
         if (error) { console.error(error); return; }
 
@@ -576,14 +586,29 @@
         }));
     }
 
+    function isOwnProfile() {
+        return !!currentUser && currentUser.id === profileUserId;
+    }
+
     async function initProfile(){
         currentUser = await getSignedInUser();
-        if(!currentUser){
+        const requestedId = new URLSearchParams(window.location.search).get('id');
+        profileUserId = requestedId || currentUser?.id;
+
+        // No ?id= and not signed in: nothing to show, so ask them to log in.
+        if(!profileUserId){
             document.getElementById("profile-login-prompt").hidden = false;
             document.getElementById("profile-content").hidden = true;
             return;
         }
-        await loadProfile();
+
+        // Edit button and "view all" links only make sense on your own profile.
+        if (isOwnProfile()) {
+            document.getElementById('edit-profile-btn').hidden = false;
+            document.querySelectorAll('.own-only').forEach((el) => { el.hidden = false; });
+        }
+
+        if (!await loadProfile()) return;
         await loadStats();
         await loadFeatured();
         await loadRecent();
