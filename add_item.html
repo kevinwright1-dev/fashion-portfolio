@@ -45,8 +45,11 @@
             <label for="brand">Brand:</label>
             <input type="text" id="brand" name="brand" maxlength="150" required>
 
-            <label for="brand">Size:</label>
+            <label for="size">Size:</label>
             <input type="text" id="size" name="size" maxlength="150" required>
+
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" step="0.01" min="0">
 
             <label for="description">Description:</label>
             <textarea id="description" name="description" maxlength="500"></textarea>
@@ -98,6 +101,7 @@
             const brand = document.getElementById('brand').value.trim();
             const description = document.getElementById('description').value.trim();
             const size = document.getElementById('size').value.trim();
+            const price = document.getElementById('price').value;
 
             if (!title || !imageFile) {
                 statusEl.textContent = 'Please add a title and select an image.';
@@ -141,6 +145,7 @@
                     description,
                     img_url: urlData.publicUrl,   
                     size,
+                    price,
                     width,
                     height,
                     user_id: currentUser.id
