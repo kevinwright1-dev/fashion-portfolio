@@ -113,7 +113,8 @@
     const closeModalBtn = document.getElementById('close-modal-btn');
 
     const closet_items = new Map();
-    let allCloset = [];    
+    let allCloset = [];
+    let currentSort = 'all';
     const sortControls = document.querySelectorAll(".sort-control button");
 
     async function loadCloset() {
@@ -146,6 +147,7 @@
 
     function renderCloset(sortBy) {
         const category = String(sortBy || 'all').trim().toLowerCase();
+        currentSort = category;
         const sorted = category === 'all'
             ? [...allCloset]
             : allCloset.filter(item => String(item.category || '').trim().toLowerCase() === category);
@@ -201,9 +203,69 @@
         button.addEventListener('click', () => renderCloset(button.textContent));
     });
 
+    const CATEGORY_OPTIONS = [
+        { value: 'bottoms', label: 'Bottoms' },
+        { value: 'tops', label: 'Tops' },
+        { value: 'shoes', label: 'Shoes' },
+        { value: 'accessories', label: 'Accessories' },
+        { value: 'outwear', label: 'Outwear' },
+        { value: 'other', label: 'Other' },
+    ];
+
+    function buildEditForm(item) {
+        const form = document.createElement('form');
+        form.className = 'modal-caption modal-edit-form';
+
+        const addField = (labelText, control) => {
+            const fieldLabel = document.createElement('label');
+            fieldLabel.className = 'modal-meta-label';
+            fieldLabel.textContent = labelText;
+            fieldLabel.appendChild(control);
+            form.appendChild(fieldLabel);
+        };
+
+        const makeInput = (name, value, { required = false, maxLength = 150 } = {}) => {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.name = name;
+            input.value = value || '';
+            input.required = required;
+            input.maxLength = maxLength;
+            return input;
+        };
+
+        addField('Title', makeInput('title', item.title, { required: true }));
+
+        const categorySelect = document.createElement('select');
+        categorySelect.name = 'category';
+        categorySelect.required = true;
+        CATEGORY_OPTIONS.forEach(({ value, label }) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = label;
+            categorySelect.appendChild(option);
+        });
+        categorySelect.value = String(item.category || '').trim().toLowerCase() || 'other';
+        addField('Category', categorySelect);
+
+        addField('Brand', makeInput('brand', item.brand, { required: true }));
+        addField('Size', makeInput('size', item.size, { required: true }));
+        addField('Price', makeInput('price', item.price, { required: false }));
+        addField('Material', makeInput('material', item.material));
+
+        const description = document.createElement('textarea');
+        description.name = 'description';
+        description.maxLength = 500;
+        description.value = item.description || '';
+        addField('Description', description);
+
+        return form;
+    }
+
     let lastFocusedCard = null;
     function openModal(closetId, card) {
-        const clothing_item = closet_items.get(String(closetId));
+        const clothing_item = closet_items.get(String(closetId))
+            ?? allCloset.find(item => String(item.id) === String(closetId));
         if (!clothing_item) return;
 
         lastFocusedCard = card;
@@ -234,9 +296,13 @@
         const brandLabel = document.createElement('span');
         brandLabel.className = 'modal-meta-label';
         brandLabel.textContent = 'Brand';
+    
         const brandValue = document.createElement('span');
         brandValue.textContent = clothing_item.brand || 'Unknown';
         caption.append(brandLabel, brandValue);
+
+
+
 
         if (clothing_item.size) {
             const sizeLabel = document.createElement('span');
@@ -245,6 +311,24 @@
             const sizeValue = document.createElement('span');
             sizeValue.textContent = clothing_item.size;
             caption.append(sizeLabel, sizeValue);
+        }
+
+        if (clothing_item.price) {
+            const priceLabel = document.createElement('span');
+            priceLabel.className = 'modal-meta-label';
+            priceLabel.textContent = 'Price';
+            const priceValue = document.createElement('span');
+            priceValue.textContent = `$${parseFloat(clothing_item.price).toFixed(2)}`;
+            caption.append(priceLabel, priceValue);
+        }
+
+        if (clothing_item.material) {
+            const materialLabel = document.createElement('span');
+            materialLabel.className = 'modal-meta-label';
+            materialLabel.textContent = 'Material';
+            const materialValue = document.createElement('span');
+            materialValue.textContent = clothing_item.material;
+            caption.append(materialLabel, materialValue);
         }
 
         if (clothing_item.description) {
@@ -257,7 +341,104 @@
             caption.append(descriptionLabel, descriptionValue);
         }
 
-        copy.append(label, title, caption);
+        const editButton = document.createElement('button');
+        editButton.type = 'button';
+        editButton.className = 'modal-edit';
+        editButton.dataset.closetId = String(clothing_item.id);
+        editButton.textContent = 'Edit';
+        let editForm = null;
+        editButton.addEventListener('click', () => {
+            if (editForm) return;
+            editForm = buildEditForm(clothing_item);
+            editForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                saveEdit();
+            });
+            caption.replaceWith(editForm, editError);
+            label.textContent = 'Editing item';
+            editButton.replaceWith(saveButton);
+            deleteButton.replaceWith(cancelButton);
+            editForm.querySelector('input[name="title"]').focus();
+        });
+
+        const editError = document.createElement('p');
+        editError.className = 'modal-error';
+        editError.setAttribute('role', 'alert');
+
+        const saveButton = document.createElement('button');
+        saveButton.type = 'button';
+        saveButton.className = 'modal-save';
+        saveButton.textContent = 'Save';
+        saveButton.addEventListener('click', () => saveEdit());
+
+        async function saveEdit() {
+            if (saveButton.disabled) return;
+            if (!editForm.reportValidity()) return;
+
+            const formValues = Object.fromEntries(new FormData(editForm));
+            const updates = {
+                title: formValues.title.trim(),
+                category: formValues.category,
+                brand: formValues.brand.trim(),
+                size: formValues.size.trim(),
+                description: formValues.description.trim(),
+                price: parseFloat(formValues.price) || 0,
+                material: formValues.material.trim() || null
+            };
+
+            if (!updates.title || !updates.brand || !updates.size) {
+                editError.textContent = 'Title, brand and size cannot be blank.';
+                return;
+            }
+
+            saveButton.disabled = true;
+            cancelButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+            editError.textContent = '';
+
+            const { data, error } = await supabaseClient
+                .from('clothing_items')
+                .update(updates)
+                .eq('id', clothing_item.id)
+                .eq('user_id', currentUser.id)
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error updating item:', error);
+                editError.textContent = 'There was an error saving your changes. Please try again.';
+                saveButton.disabled = false;
+                cancelButton.disabled = false;
+                saveButton.textContent = 'Save';
+                return;
+            }
+
+            Object.assign(clothing_item, data);
+            renderCloset(currentSort);
+            const newCard = closetGallery.querySelector(`.card[data-id="${CSS.escape(String(clothing_item.id))}"]`);
+            openModal(clothing_item.id, newCard || lastFocusedCard);
+        }
+
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'modal-cancel';
+        cancelButton.textContent = 'Cancel';
+        cancelButton.addEventListener('click', () => {
+            openModal(clothing_item.id, lastFocusedCard);
+        });
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'modal-delete';
+        deleteButton.dataset.closetId = String(clothing_item.id);
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {});
+
+        const actions = document.createElement('div');
+        actions.className = 'modal-actions';
+        actions.append(editButton, deleteButton);
+
+        copy.append(label, title, caption, actions);
         layout.append(media, copy);
         modalBody.replaceChildren(layout);
         closetModal.style.display = 'block';
