@@ -251,6 +251,7 @@
         addField('Brand', makeInput('brand', item.brand, { required: true }));
         addField('Size', makeInput('size', item.size, { required: true }));
         addField('Price', makeInput('price', item.price, { required: false }));
+        addField('Material', makeInput('material', item.material));
 
         const description = document.createElement('textarea');
         description.name = 'description';
@@ -321,6 +322,15 @@
             caption.append(priceLabel, priceValue);
         }
 
+        if (clothing_item.material) {
+            const materialLabel = document.createElement('span');
+            materialLabel.className = 'modal-meta-label';
+            materialLabel.textContent = 'Material';
+            const materialValue = document.createElement('span');
+            materialValue.textContent = clothing_item.material;
+            caption.append(materialLabel, materialValue);
+        }
+
         if (clothing_item.description) {
             const descriptionLabel = document.createElement('span');
             descriptionLabel.className = 'modal-meta-label';
@@ -372,7 +382,8 @@
                 brand: formValues.brand.trim(),
                 size: formValues.size.trim(),
                 description: formValues.description.trim(),
-                price: parseFloat(formValues.price) || 0
+                price: parseFloat(formValues.price) || 0,
+                material: formValues.material.trim() || null
             };
 
             if (!updates.title || !updates.brand || !updates.size) {
