@@ -371,7 +371,7 @@
     <main class="outfits-main">
         <header class="outfits-header">
             <h1>Outfits</h1>
-            <a href="add-outfit.html" class="add-outfit-btn">post outfit</a>
+            <a href="add-outfit.html" class="add-outfit-btn" data-signed-in-only hidden>post outfit</a>
         </header>
 
         <section class="outfit-controls" aria-label="Search and sort">
@@ -428,7 +428,7 @@
 
         <div id="empty-state" class="outfits-empty" hidden>
             <p id="empty-text">No outfits yet</p>
-            <a href="add-outfit.html" class="add-outfit-btn">post a fit</a>
+            <a href="add-outfit.html" class="add-outfit-btn" data-signed-in-only hidden>post a fit</a>
         </div>
 
         <div id="load-more-wrap" class="load-more-wrap" hidden>
@@ -900,6 +900,10 @@
 
         (async () => {
             currentUser = await getSignedInUser();
+            // Posting needs an account: the post buttons start hidden and only show once signed in
+            document.querySelectorAll('[data-signed-in-only]').forEach((el) => {
+                el.hidden = !currentUser;
+            });
             loadOutfits();
         })();
     </script>

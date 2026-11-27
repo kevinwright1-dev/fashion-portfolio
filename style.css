@@ -12,6 +12,12 @@ body {
     background-attachment: fixed;
 }
 
+/* Keep the `hidden` attribute working even on elements whose class sets
+   display: flex/grid/etc. (the browser's own [hidden] rule loses to those). */
+[hidden] {
+    display: none !important;
+}
+
 
 /* Navigation Styles */
 nav {
