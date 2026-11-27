@@ -5,54 +5,355 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Outfits</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
     <script src="config.js"></script>
     <script src="session.js"></script>
     <style>
+        /* Outfits page. Search / sort box matches closet.html. */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        .outfits-main {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
         .outfits-header {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
+            align-items: flex-end;
+            gap: 16px;
+        }
+
+        .outfits-header h1 {
+            margin: 0;
+            font-weight: 300;
+            font-size: 22px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            text-align: left;
         }
 
         .add-outfit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-sizing: border-box;
+            height: 44px;
+            padding: 0 24px;
             background: #000;
             color: #fff;
             border: 1px solid #fff;
-            padding: 0.7rem 2rem;
-            font-size: 0.833333rem;
-            line-height: normal;
-            cursor: pointer;
-            text-transform: lowercase;
-            letter-spacing: 1px;
             font-family: "Roboto Mono", monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: lowercase;
             text-decoration: none;
+            cursor: pointer;
         }
 
-                
         .add-outfit-btn:hover {
             background: #222;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: #666;
+        .add-outfit-btn[hidden] {
+            display: none;
         }
 
-        .empty-state p {
-            margin-bottom: 2rem;
+        .add-outfit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
-        #sort-controls {
+
+        /* Search / sort box */
+        .outfit-controls {
+            border: 1px solid #222;
+            padding: 20px 24px;
             display: flex;
-            gap: 1rem;
+            flex-direction: column;
+            gap: 16px;
         }
-        .outfits-toolbar {
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-field {
+            flex: 1 1 260px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            border-bottom: 1px solid #333;
+        }
+
+        .search-field:focus-within {
+            border-bottom-color: #fff;
+        }
+
+        .search-field input {
+            flex: 1;
+            min-width: 0;
+            width: auto;
+            height: 44px;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            color: #fff;
+            font-size: 15px;
+        }
+
+        .search-field input::placeholder {
+            color: #8a8a8a;
+        }
+
+        .search-field input:focus-visible {
+            outline: none;
+        }
+
+        .sort-field {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .field-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .sort-field select {
+            width: auto;
+            height: 44px;
+            margin: 0;
+            padding: 0 12px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #333;
+            font-size: 13px;
+        }
+
+        .who-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 22px;
+            border-top: 1px solid #1a1a1a;
+            padding-top: 8px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 40px;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-bottom: 1px solid transparent;
+            color: #999;
+            font-size: 14px;
+            letter-spacing: normal;
+            text-transform: lowercase;
+            cursor: pointer;
+        }
+
+        .chip:hover {
+            background: transparent;
+            color: #fff;
+        }
+
+        .chip[aria-pressed="true"] {
+            color: #fff;
+            border-bottom-color: #fff;
+        }
+
+        .chip:focus-visible,
+        .outfit-card:focus-visible {
+            outline: 1px solid #888;
+            outline-offset: 2px;
+        }
+
+        #status:empty {
+            display: none;
+        }
+
+        #status {
+            margin: 0;
+            text-align: center;
+            color: #999;
+        }
+
+        /* Masonry grid: cards are dealt into columns left to right,
+           so the newest outfits stay along the top row. */
+        .outfits-grid {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .outfits-grid[hidden] {
+            display: none;
+        }
+
+        .outfits-col {
+            flex: 1 1 0;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--col-gap, 20px);
+        }
+
+        .outfit-card .card-body {
+            gap: 2px;
+        }
+
+        .card-meta {
+            margin: 0;
+            color: #a0a0a0;
+            font-size: 12px;
+        }
+
+        .card-foot {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .card-occasion {
+            font-size: 11px;
+            color: #a0a0a0;
+            letter-spacing: 1px;
+        }
+
+        .outfit-card .upvote {
+            min-height: 32px;
+            border-color: #333;
+            color: #ccc;
+        }
+
+        .outfit-card .upvote:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        /* Empty / no results */
+        .outfits-empty,
+        .no-results {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            text-align: center;
+            color: #999;
+        }
+
+        .outfits-empty {
+            padding: 4rem 2rem;
+        }
+
+        .no-results {
+            border: 1px dashed #333;
+            padding: 48px 24px;
+        }
+
+        .outfits-empty p,
+        .no-results p {
+            margin: 0;
+        }
+
+        .outfits-empty[hidden],
+        .no-results[hidden],
+        .load-more-wrap[hidden] {
+            display: none;
+        }
+
+        .load-more-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding-bottom: 2rem;
+        }
+
+        .result-count {
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Outfit popup */
+        .modal-author {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding-right: 48px; /* room for the exit button */
+        }
+
+        .modal-author a,
+        .modal-author span:first-child {
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .modal-posted {
+            font-size: 0.75rem;
+            color: #a0a0a0;
+        }
+
+        .modal-details {
+            margin: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            gap: 14px 20px;
+            padding: 1rem 0;
+            border-top: 1px solid #222;
+            border-bottom: 1px solid #222;
+        }
+
+        .modal-details div {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .modal-details dt {
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .modal-details dd {
+            margin: 0;
+            color: #fff;
+            font-size: 0.95rem;
+            overflow-wrap: anywhere;
+        }
+
+        .modal-upvote {
+            min-height: 44px;
         }
     </style>
 </head>
@@ -60,147 +361,391 @@
     <nav>
         <a href="index.html">HOME</a>
         <a href="closet.html">KLOZET</a>
-        <a href="outfits.html">OUTFITS</a>
+        <a href="outfits.html" aria-current="page">OUTFITS</a>
         <a href="inspo.html">INSPO</a>
         <a href="forum.html">FORUM</a>
         <a href="profile.html" id="profile-link" style="display: none;">PROFILE</a>
         <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <div class="outfits-header">
-        <h2>outfits</h2>
-        
-    </div>
+    <main class="outfits-main">
+        <header class="outfits-header">
+            <h1>Outfits</h1>
+            <a href="add-outfit.html" class="add-outfit-btn">post outfit</a>
+        </header>
 
-    <div class="outfits-toolbar">
-        <a href="add-outfit.html" class="add-outfit-btn" id="add-outfit-btn" style="display:block;">add outfit</a>
+        <section class="outfit-controls" aria-label="Search and sort">
+            <div class="controls-row">
+                <label class="search-field">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+                    <span class="sr-only">Search outfits</span>
+                    <input type="search" id="search" placeholder="search outfits" autocomplete="off">
+                </label>
 
-        <div id="sort-controls">
-            <button data-sort="new">New</button>
-            <button data-sort="old">Old</button>
-            <button data-sort="top">Top</button>
+                <label class="sort-field">
+                    <span class="field-label">Sort</span>
+                    <select id="sort">
+                        <option value="newest">newest</option>
+                        <option value="oldest">oldest</option>
+                        <option value="week">top this week</option>
+                        <option value="all">top all time</option>
+                    </select>
+                </label>
+
+                <!-- FILTERS (button): uncomment when filters are ready
+                <button type="button" class="box-btn" id="filters-btn" aria-expanded="false" aria-controls="filter-panel">filters</button>
+                END FILTERS -->
+            </div>
+
+            <div class="who-row" role="group" aria-label="Whose outfits">
+                <button type="button" class="chip" data-who="everyone" aria-pressed="true">everyone</button>
+                <button type="button" class="chip" data-who="mine" aria-pressed="false">mine</button>
+            </div>
+
+            <!-- FILTERS (panel): uncomment when filters are ready. Each group fills from the data
+                 like closet.html's colour / brand panels, then adds a line to buildQuery().
+            <div class="filter-panel" id="filter-panel" hidden>
+                <div class="filter-group">
+                    <span class="field-label" id="style-filter-label">Style</span>
+                    <div class="filter-options" id="style-options" role="group" aria-labelledby="style-filter-label"></div>
+                </div>
+                <div class="filter-group">
+                    <span class="field-label" id="season-filter-label">Season</span>
+                    <div class="filter-options" id="season-options" role="group" aria-labelledby="season-filter-label"></div>
+                </div>
+            </div>
+            END FILTERS -->
+        </section>
+
+        <p id="status" role="status"></p>
+
+        <div id="outfits-grid" class="outfits-grid" hidden></div>
+
+        <div id="no-results" class="no-results" hidden>
+            <p id="no-results-text">Nothing matches that search.</p>
+            <button type="button" class="add-outfit-btn" id="clear-search">clear search</button>
         </div>
-    </div>
 
-    <p id="status" role="status" style="text-align: center; color: #666;"></p>
+        <div id="empty-state" class="outfits-empty" hidden>
+            <p id="empty-text">No outfits yet</p>
+            <a href="add-outfit.html" class="add-outfit-btn">post a fit</a>
+        </div>
 
-    <div class="gallery" id="outfits-gallery" style="display: none;">
-        <!-- Outfits will be loaded here -->
-    </div>
+        <div id="load-more-wrap" class="load-more-wrap" hidden>
+            <button type="button" class="add-outfit-btn" id="load-more">load more</button>
+            <span class="result-count" id="result-count"></span>
+        </div>
+    </main>
 
-    <div id="empty-state" class="empty-state" style="display: none;">
-        <p>No outfits yet</p>
-        <a href="add-outfit.html" class="add-outfit-btn">Share Outfit</a>
-    </div>
     <!-- Modal Overlay -->
     <div id="outfit-modal" class="modal" style="display: none;">
         <div class="modal-backdrop"></div>
         <div class="modal-content" role="dialog" aria-modal="true" aria-label="Outfit details">
             <button class="modal-close" id="close-modal-btn" aria-label="Close outfit details">exit</button>
-            
-            <div id="modal-body">
-                <p style="text-align: center; padding: 3rem; color: #666;">Loading...</p>
-            </div>
+            <div id="modal-body"></div>
         </div>
     </div>
 
     <script>
-        const outfitsGallery = document.getElementById('outfits-gallery');
+        const PAGE_SIZE = 12;
+        const MIN_COL_WIDTH = 220;   // px; how narrow a grid column can get
+        const COL_GAP = 20;          // px; matches .outfits-grid gap
+        const MAX_COLS = 4;
+
+        const grid = document.getElementById('outfits-grid');
+        const statusEl = document.getElementById('status');
+        const searchInput = document.getElementById('search');
+        const sortSelect = document.getElementById('sort');
+        const whoButtons = document.querySelectorAll('.who-row .chip');
+        const noResults = document.getElementById('no-results');
+        const noResultsText = document.getElementById('no-results-text');
         const emptyState = document.getElementById('empty-state');
+        const emptyText = document.getElementById('empty-text');
+        const loadMoreWrap = document.getElementById('load-more-wrap');
+        const loadMoreBtn = document.getElementById('load-more');
+        const resultCount = document.getElementById('result-count');
         const outfitModal = document.getElementById('outfit-modal');
         const modalBody = document.getElementById('modal-body');
         const closeModalBtn = document.getElementById('close-modal-btn');
 
-        const sortButtons = document.querySelectorAll('#sort-controls button');
-        const outfits = new Map();
-        let allOutfits = [];
-        
-        const statusEl = document.getElementById('status'); 
+        // Everything the controls can change. Each change reloads from page 0.
+        const view = {
+            q: '',             // search text
+            sort: 'newest',    // newest | oldest | week | all
+            who: 'everyone',   // everyone | mine
+            page: 0,           // pages loaded so far, minus one
+            total: 0           // how many outfits match, for "showing X of Y"
+        };
 
-        async function loadOutfits() {
-            outfitsGallery.style.display = 'none';
-            emptyState.style.display = 'none';
-            statusEl.textContent = 'Loading...';
+        let currentUser = null;
+        let loaded = [];                // outfits on screen, in order
+        const outfits = new Map();      // id -> outfit row (modal + upvotes read this)
+        let requestId = 0;              // ignore responses from older searches
+        let columnCount = 0;
 
-            const { data, error } = await supabaseClient.from('outfits').select('*');
+        // ---------- Formatting ----------
+
+        function formatDate(value) {
+            if (!value) return '';
+            const date = /^\d{4}-\d{2}-\d{2}$/.test(value)
+                ? new Date(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)))
+                : new Date(value);
+            if (Number.isNaN(date.getTime())) return '';
+            const opts = { month: 'short', day: 'numeric' };
+            if (date.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+            return date.toLocaleDateString('en-US', opts).toLowerCase();
+        }
+
+        // ---------- Loading ----------
+
+        function buildQuery() {
+            let query = supabaseClient
+                .from('outfits')
+                .select('*', { count: 'exact' });
+
+            if (view.who === 'mine' && currentUser) {
+                query = query.eq('user_id', currentUser.id);
+            }
+
+            if (view.q) {
+                // Commas, brackets, * and % have meaning inside .or(); drop them from the search text.
+                const term = view.q.replace(/[%*,()\\:"]/g, ' ').replace(/\s+/g, ' ').trim();
+                if (term) {
+                    query = query.or(
+                        `title.ilike.%${term}%,description.ilike.%${term}%,author_name.ilike.%${term}%,location.ilike.%${term}%`
+                    );
+                }
+            }
+
+            // FILTERS: when the panel is back, add one line per active group here, e.g.
+            // if (view.styles.size) query = query.in('style', [...view.styles]);
+
+            if (view.sort === 'oldest') {
+                query = query.order('created_at', { ascending: true });
+            } else if (view.sort === 'week') {
+                const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+                query = query
+                    .gte('created_at', weekAgo)
+                    .order('upvotes', { ascending: false, nullsFirst: false })
+                    .order('created_at', { ascending: false });
+            } else if (view.sort === 'all') {
+                query = query
+                    .order('upvotes', { ascending: false, nullsFirst: false })
+                    .order('created_at', { ascending: false });
+            } else {
+                query = query.order('created_at', { ascending: false });
+            }
+
+            // id as a last tie-breaker keeps pages from overlapping
+            query = query.order('id', { ascending: false });
+
+            const from = view.page * PAGE_SIZE;
+            return query.range(from, from + PAGE_SIZE - 1);
+        }
+
+        async function loadOutfits({ append = false } = {}) {
+            if (!append) view.page = 0;
+            const thisRequest = ++requestId;
+
+            loadMoreBtn.disabled = true;
+            if (!append) statusEl.textContent = 'Loading...';
+
+            const { data, error, count } = await buildQuery();
+            if (thisRequest !== requestId) return;   // a newer search started meanwhile
+
+            loadMoreBtn.disabled = false;
 
             if (error) {
                 console.error('Error fetching outfits:', error);
                 statusEl.textContent = 'Error loading outfits.';
+                if (append) view.page -= 1;   // let "load more" try the same page again
                 return;
             }
 
-            statusEl.textContent = '';          // clear it before the empty check
+            statusEl.textContent = '';
+            view.total = count ?? 0;
 
-            if (data.length === 0) {
-                emptyState.style.display = 'block';
-                return;
+            if (!append) {
+                loaded = [];
+                outfits.clear();
             }
 
-            allOutfits = data;
-            renderOutfits('new');
+            // Skip any row already shown (a new post can shift the pages by one).
+            const fresh = data.filter((o) => !outfits.has(String(o.id)));
+            fresh.forEach((o) => outfits.set(String(o.id), o));
+            loaded = loaded.concat(fresh);
+
+            if (append) appendCards(fresh, loaded.length - fresh.length);
+            else renderGrid();
+
+            updateStates();
         }
 
-        function renderOutfits(sortBy) {
-            const sorted = [...allOutfits];
-            if (sortBy === 'old') sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            else if (sortBy === 'top') sorted.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
-            else sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        function updateStates() {
+            const hasAny = loaded.length > 0;
+            const searching = view.q !== '';
 
-            outfits.clear();
-            const fragment = document.createDocumentFragment();
+            grid.hidden = !hasAny;
+            noResults.hidden = hasAny || !searching;
+            emptyState.hidden = hasAny || searching;
 
-            sorted.forEach(outfit => {
-                outfits.set(String(outfit.id), outfit);
+            if (!hasAny && !searching) {
+                if (view.who === 'mine') emptyText.textContent = "You haven't posted a fit yet";
+                else if (view.sort === 'week') emptyText.textContent = 'No outfits posted this week';
+                else emptyText.textContent = 'No outfits yet';
+            }
+            if (!hasAny && searching) {
+                noResultsText.textContent = `Nothing matches "${view.q}".`;
+            }
 
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.dataset.id = outfit.id;
+            loadMoreWrap.hidden = !hasAny;
+            loadMoreBtn.hidden = loaded.length >= view.total;
+            resultCount.textContent = `showing ${loaded.length} of ${view.total}`;
+        }
 
-                const img = document.createElement('img');
-                img.src = outfit.img_url;
-                img.alt = outfit.title;
-                img.loading = 'lazy';
+        // ---------- Grid ----------
 
-                const h3 = document.createElement('h3');
-                h3.textContent = outfit.title;
+        function getColumnCount() {
+            const width = grid.clientWidth || grid.parentElement.clientWidth;
+            // Phones get 2 narrow columns, like the mockup
+            const minWidth = width < 600 ? 140 : MIN_COL_WIDTH;
+            const gap = width < 600 ? 10 : COL_GAP;
+            grid.style.gap = `${gap}px`;
+            grid.style.setProperty('--col-gap', `${gap}px`);
+            const fit = Math.floor((width + gap) / (minWidth + gap));
+            return Math.max(1, Math.min(MAX_COLS, fit));
+        }
 
-                const body = document.createElement('div');
-                body.className = 'card-body';
-
-                const header = document.createElement('div');
-                header.className = 'card-header';
-
-                const cta = document.createElement('span');
-                cta.className = 'card-cta';
-                cta.textContent = 'view';
-
-                const author = document.createElement('span');
-                author.className = 'card-author';
-                author.append('by ', makeProfileLink(outfit.author_name, outfit.user_id));
-
-                const upvoteButton = document.createElement('button');
-                upvoteButton.type = 'button';
-                upvoteButton.className = 'upvote';
-                upvoteButton.dataset.outfitId = String(outfit.id);
-                upvoteButton.textContent = `▲ ${outfit.upvotes || 0}`;
-
-                header.append(h3, cta);
-                body.append(header, author, upvoteButton);
-                card.append(img, body);
-                fragment.appendChild(card);
+        // Deal cards into columns left to right: card 0 -> col 0, card 1 -> col 1, ...
+        function renderGrid() {
+            grid.hidden = loaded.length === 0;
+            columnCount = getColumnCount();
+            const columns = Array.from({ length: columnCount }, () => {
+                const col = document.createElement('div');
+                col.className = 'outfits-col';
+                return col;
             });
-
-            outfitsGallery.replaceChildren(fragment);
-            outfitsGallery.style.display = 'grid';
+            loaded.forEach((outfit, i) => columns[i % columnCount].appendChild(makeCard(outfit)));
+            grid.replaceChildren(...columns);
         }
+
+        function appendCards(rows, startIndex) {
+            const columns = grid.children;
+            if (!columns.length) { renderGrid(); return; }
+            rows.forEach((outfit, k) => {
+                columns[(startIndex + k) % columns.length].appendChild(makeCard(outfit));
+            });
+        }
+
+        function makeCard(outfit) {
+            const card = document.createElement('div');
+            card.className = 'card outfit-card';
+            card.dataset.id = outfit.id;
+            card.tabIndex = 0;
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `Open ${outfit.title || 'outfit'} by ${outfit.author_name || 'anon'}`);
+
+            const img = document.createElement('img');
+            img.src = outfit.img_url;
+            img.alt = outfit.title || 'Outfit photo';
+            img.loading = 'lazy';
+
+            // TAGGING: when outfit_items is ready, overlay the first 3 tagged piece photos
+            // and an "N pieces" badge on the photo here, e.g.
+            // const badge = document.createElement('span');
+            // badge.className = 'pieces-badge';
+            // badge.textContent = `${outfit.outfit_items.length} pieces`;
+
+            const body = document.createElement('div');
+            body.className = 'card-body';
+
+            const title = document.createElement('h3');
+            title.textContent = outfit.title;
+
+            const meta = document.createElement('p');
+            meta.className = 'card-meta';
+            meta.append('@', makeProfileLink(outfit.author_name, outfit.user_id));
+            const date = outfit.worn_on ? `worn ${formatDate(outfit.worn_on)}` : formatDate(outfit.created_at);
+            if (date) meta.append(` / ${date}`);
+
+            const foot = document.createElement('div');
+            foot.className = 'card-foot';
+            foot.appendChild(makeUpvoteButton(outfit));
+            if (outfit.occasion) {
+                const occasion = document.createElement('span');
+                occasion.className = 'card-occasion';
+                occasion.textContent = outfit.occasion;
+                foot.appendChild(occasion);
+            }
+
+            body.append(title, meta, foot);
+            card.append(img, body);
+            return card;
+        }
+
+        // Re-deal the columns when the window gets wide or narrow enough to change the count.
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                if (loaded.length && getColumnCount() !== columnCount) renderGrid();
+            }, 150);
+        });
+
+        // ---------- Upvotes (old behaviour: each click adds 1 via add_upvote_outfit) ----------
+
+        function makeUpvoteButton(outfit, extraClass = '') {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = `upvote ${extraClass}`.trim();
+            button.dataset.outfitId = String(outfit.id);
+            setUpvoteText(button, outfit.upvotes || 0);
+            return button;
+        }
+
+        function setUpvoteText(button, count) {
+            button.textContent = `▲ ${count}`;
+            button.setAttribute('aria-label', `Upvote, ${count} upvotes`);
+        }
+
+        async function addOutfitUpvote(outfit, button) {
+            const buttons = [...document.querySelectorAll('.upvote')]
+                .filter((b) => b.dataset.outfitId === String(outfit.id));
+            buttons.forEach((b) => { b.disabled = true; });
+
+            try {
+                const { data, error } = await supabaseClient
+                    .rpc('add_upvote_outfit', { p_outfits_id: outfit.id });
+                if (error) throw error;
+
+                outfit.upvotes = data;
+                buttons.forEach((b) => setUpvoteText(b, outfit.upvotes));
+            } catch (error) {
+                console.error('Error upvoting outfit:', error);
+                statusEl.textContent = error.message || 'Unable to upvote this outfit.';
+            } finally {
+                buttons.forEach((b) => { b.disabled = false; });
+                if (button.isConnected) button.focus();
+            }
+        }
+
+        // ---------- Modal ----------
 
         let lastFocusedCard = null;
 
-        function openModal(outfitId, card) {
-            const outfit = outfits.get(outfitId);
-            if (!outfit) return;
+        function detail(label, value) {
+            const wrap = document.createElement('div');
+            const dt = document.createElement('dt');
+            dt.textContent = label;
+            const dd = document.createElement('dd');
+            dd.textContent = value;
+            wrap.append(dt, dd);
+            return wrap;
+        }
 
+        function openModal(outfitId, card) {
+            const outfit = outfits.get(String(outfitId));
+            if (!outfit) return;
             lastFocusedCard = card;
 
             const layout = document.createElement('div');
@@ -210,11 +755,23 @@
             media.className = 'modal-media';
             const img = document.createElement('img');
             img.src = outfit.img_url;
-            img.alt = outfit.title;
+            img.alt = outfit.title || 'Outfit photo';
             media.appendChild(img);
+
+            // TAGGING: when outfit_items is ready, add a "photo / pieces" switch above the photo,
+            // numbered dots on the photo (x / y stored per tag), and a pieces grid view.
 
             const copy = document.createElement('div');
             copy.className = 'modal-copy';
+
+            const author = document.createElement('div');
+            author.className = 'modal-author';
+            const name = document.createElement('span');
+            name.append('@', makeProfileLink(outfit.author_name, outfit.user_id));
+            const posted = document.createElement('span');
+            posted.className = 'modal-posted';
+            posted.textContent = `posted ${formatDate(outfit.created_at)}`;
+            author.append(name, posted);
 
             const label = document.createElement('span');
             label.className = 'modal-label';
@@ -223,114 +780,128 @@
             const title = document.createElement('h3');
             title.textContent = outfit.title;
 
-            const caption = document.createElement('div');
-            caption.className = 'modal-caption';
+            copy.append(author, label, title);
 
-            const authorLabel = document.createElement('span');
-            authorLabel.className = 'modal-meta-label';
-            authorLabel.textContent = 'Posted by';
-            const authorValue = document.createElement('span');
-            authorValue.append(makeProfileLink(outfit.author_name, outfit.user_id));
-            caption.append(authorLabel, authorValue);
-
-            if (outfit.location) {
-                const locationLabel = document.createElement('span');
-                locationLabel.className = 'modal-meta-label';
-                locationLabel.textContent = 'Location';
-                const locationValue = document.createElement('span');
-                locationValue.textContent = outfit.location;
-                caption.append(locationLabel, locationValue);
-            }
+            // worn / occasion / location: only the ones this outfit has
+            const details = document.createElement('dl');
+            details.className = 'modal-details';
+            if (outfit.worn_on) details.appendChild(detail('worn', formatDate(outfit.worn_on)));
+            if (outfit.occasion) details.appendChild(detail('occasion', outfit.occasion));
+            if (outfit.location) details.appendChild(detail('location', outfit.location));
+            if (details.children.length) copy.appendChild(details);
 
             if (outfit.description) {
-                const descriptionLabel = document.createElement('span');
-                descriptionLabel.className = 'modal-meta-label';
-                descriptionLabel.textContent = 'Description';
-                const descriptionValue = document.createElement('p');
-                descriptionValue.className = 'modal-description';
-                descriptionValue.textContent = outfit.description;
-                caption.append(descriptionLabel, descriptionValue);
+                const description = document.createElement('p');
+                description.className = 'modal-description';
+                description.textContent = outfit.description;
+                copy.appendChild(description);
             }
 
-            const upvoteButton = document.createElement('button');
-            upvoteButton.type = 'button';
-            upvoteButton.className = 'upvote modal-upvote';
-            upvoteButton.dataset.outfitId = String(outfit.id);
-            upvoteButton.textContent = `▲ ${outfit.upvotes || 0}`;
-            upvoteButton.addEventListener('click', () => addOutfitUpvote(outfit, upvoteButton));
+            // TAGGING: "pieces in this fit (N)" list goes here: one row per tagged closet item
+            // (number, photo, title, brand · category), each linking to the item.
 
-            copy.append(label, title, caption, upvoteButton);
+            const upvoteButton = makeUpvoteButton(outfit, 'modal-upvote');
+            upvoteButton.addEventListener('click', () => addOutfitUpvote(outfit, upvoteButton));
+            copy.appendChild(upvoteButton);
+
+            // COMMENTS: when an outfit_comments table exists, load
+            //   supabaseClient.from('outfit_comments').select('*').eq('outfit_id', outfit.id).order('created_at')
+            // and add the comment list + "add a comment" box here.
+
             layout.append(media, copy);
             modalBody.replaceChildren(layout);
             outfitModal.style.display = 'block';
             document.body.style.overflow = 'hidden';
-        }
-
-        async function addOutfitUpvote(outfit, button) {
-            const buttons = [...document.querySelectorAll('.upvote')]
-                .filter(upvoteButton => upvoteButton.dataset.outfitId === String(outfit.id));
-            buttons.forEach(upvoteButton => {
-                upvoteButton.disabled = true;
-            });
-
-            try {
-                const { data, error } = await supabaseClient
-                    .rpc('add_upvote_outfit', { p_outfits_id: outfit.id });
-
-                if (error) throw error;
-
-                outfit.upvotes = data;
-                buttons.forEach(upvoteButton => {
-                    upvoteButton.textContent = `▲ ${outfit.upvotes}`;
-                });
-            } catch (error) {
-                console.error('Error upvoting outfit:', error);
-                alert(error.message || 'Unable to upvote this outfit.');
-            } finally {
-                buttons.forEach(upvoteButton => {
-                    upvoteButton.disabled = false;
-                });
-                if (button.isConnected) button.focus();
-            }
+            closeModalBtn.focus();
         }
 
         function closeModal() {
             outfitModal.style.display = 'none';
             modalBody.replaceChildren();
             document.body.style.overflow = '';
-            lastFocusedCard?.focus();
+            if (lastFocusedCard?.isConnected) lastFocusedCard.focus();
         }
 
-        closeModalBtn.addEventListener('click', closeModal);
-        document.querySelector('#outfit-modal .modal-backdrop').addEventListener('click', closeModal);
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && outfitModal.style.display === 'block') closeModal();
+        // ---------- Events ----------
+
+        // Wait until typing stops so each key press doesn't send a request.
+        let searchTimer;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                const q = searchInput.value.trim();
+                if (q === view.q) return;
+                view.q = q;
+                loadOutfits();
+            }, 300);
         });
 
-        sortButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                renderOutfits(button.dataset.sort);
+        document.getElementById('clear-search').addEventListener('click', () => {
+            searchInput.value = '';
+            view.q = '';
+            loadOutfits();
+            searchInput.focus();
+        });
+
+        sortSelect.addEventListener('change', () => {
+            view.sort = sortSelect.value;
+            loadOutfits();
+        });
+
+        whoButtons.forEach((btn) => {
+            btn.addEventListener('click', async () => {
+                const who = btn.dataset.who;
+                if (who === view.who) return;
+                if (who === 'mine' && !currentUser) {
+                    await requireUser();   // sends logged-out users to log in
+                    return;
+                }
+                view.who = who;
+                whoButtons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+                loadOutfits();
             });
         });
 
-        outfitsGallery.addEventListener('click', (event) => {
+        loadMoreBtn.addEventListener('click', () => {
+            view.page += 1;
+            loadOutfits({ append: true });
+        });
+
+        grid.addEventListener('click', (event) => {
             const upvoteButton = event.target.closest('.upvote');
             if (upvoteButton) {
-                event.stopPropagation();
                 const outfit = outfits.get(upvoteButton.dataset.outfitId);
                 if (outfit) addOutfitUpvote(outfit, upvoteButton);
                 return;
             }
-
             // Username links go to the profile instead of opening the modal
             if (event.target.closest('a')) return;
 
-            const card = event.target.closest('.card');
+            const card = event.target.closest('.outfit-card');
             if (card) openModal(card.dataset.id, card);
         });
 
-        loadOutfits();
+        grid.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const card = event.target.closest('.outfit-card');
+            // Only when the card itself has focus, not its upvote button or username link
+            if (!card || event.target !== card) return;
+            event.preventDefault();
+            openModal(card.dataset.id, card);
+        });
 
+        closeModalBtn.addEventListener('click', closeModal);
+        document.querySelector('#outfit-modal .modal-backdrop').addEventListener('click', closeModal);
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && outfitModal.style.display === 'block') closeModal();
+        });
+
+        // ---------- Start ----------
+
+        (async () => {
+            currentUser = await getSignedInUser();
+            loadOutfits();
+        })();
     </script>
 </body>
 </html>

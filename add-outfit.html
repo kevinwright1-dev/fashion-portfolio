@@ -9,27 +9,234 @@
     <script src="config.js"></script>
     <script src="session.js"></script>
     <style>
-        #outfit-form input[type="file"],
-        #outfit-form input[type="text"],
-        #outfit-form textarea {
-            display: block;
-            margin-bottom: 0.9rem;
+        /* Add outfit page: same layout as add_item.html (single column, bordered sections).
+           Overrides the global form/input/button rules from style.css. */
+        .add-item-form {
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        #outfit-form textarea {
+        .add-item-title {
+            margin: 0 0 16px;
+            font-weight: 300;
+            font-size: 22px;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .add-item-form .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+
+        /* Photo drop zone */
+        .photo-drop {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 260px;
+            margin: 0;
+            border: 1px dashed #333;
+            color: #fff;
+            cursor: pointer;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .photo-drop:hover,
+        .photo-drop.is-dragging {
+            border-color: #888;
+        }
+
+        .photo-drop:focus-within {
+            border-color: #fff;
+        }
+
+        .photo-drop-text {
+            font-size: 14px;
+        }
+
+        .photo-drop-hint {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .photo-drop img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #0a0a0a;
+        }
+
+        .photo-drop.has-image .photo-drop-text,
+        .photo-drop.has-image .photo-drop-hint,
+        .photo-drop.has-image svg {
+            visibility: hidden;
+        }
+
+        /* Bordered sections */
+        .add-item-section {
+            border: 1px solid #222;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .add-item-section-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .add-item-section h2 {
+            margin: 0;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 3px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .add-item-optional {
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* Fields */
+        .add-item-form .field {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 0;
+            color: #fff;
+        }
+
+        .add-item-form .field-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .add-item-form .field-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+        }
+
+        .add-item-form .field-row > .field {
+            flex: 1 1 180px;
+        }
+
+        .add-item-form .field-row > .field-wide {
+            flex: 2 1 200px;
+        }
+
+        .add-item-form input[type="text"],
+        .add-item-form input[type="number"],
+        .add-item-form input[type="date"],
+        .add-item-form textarea {
+            box-sizing: border-box;
+            width: 100%;
+            height: 44px;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-bottom: 1px solid #333;
+            border-radius: 0;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .add-item-form input[type="date"] {
+            color-scheme: dark;
+        }
+
+        .add-item-form textarea {
+            height: auto;
+            min-height: 88px;
+            padding: 10px 0;
             resize: vertical;
-            min-height: 90px;
+            line-height: 1.6;
         }
 
-        #status {
-            min-height: 1.4em;
-            color: #bcbcbc;
-            font-size: 0.85rem;
+        .add-item-form input::placeholder,
+        .add-item-form textarea::placeholder {
+            color: #5f5f5f;
         }
 
-        #submit-btn {
-            display: block;
-            margin: 0 auto;
+        .add-item-form input:focus-visible,
+        .add-item-form textarea:focus-visible {
+            outline: none;
+            border-bottom-color: #fff;
+        }
+
+        /* Status + actions */
+        .add-item-form #status {
+            margin: 0;
+            min-height: 1.6em;
+            font-size: 13px;
+            color: #ff6b6b;
+            white-space: normal;
+        }
+
+        .add-item-form #status.is-info {
+            color: #ccc;
+        }
+
+        .add-item-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .add-item-actions button,
+        .add-item-actions a {
+            flex: 1 1 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            height: 48px;
+            padding: 0 16px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            font-family: "Roboto Mono", monospace;
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: lowercase;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .add-item-actions button:hover,
+        .add-item-actions a:hover {
+            background: #222;
+        }
+
+        .add-item-actions button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -45,22 +252,66 @@
     </nav>
 
     <main>
-        <h2 style="text-align: center; margin-bottom: 1rem">Create Outfit</h2>
-        <form id="outfit-form">
-            <label for="image">Photo (PNG, JPG, GIF or WebP, max 5 MB):</label>
-            <input type="file" id="image" name="image" accept="image/gif, image/jpeg, image/png, image/webp" required>
+        <form id="outfit-form" class="add-item-form" novalidate>
+            <h1 class="add-item-title">Add outfit</h1>
 
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" maxlength="150" required>
+            <label class="photo-drop" id="photo-drop">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"></path><path d="M7 9l5-5 5 5"></path><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"></path></svg>
+                <span class="photo-drop-text">add photo</span>
+                <span class="photo-drop-hint">png, jpg, gif, webp · 5 MB</span>
+                <input class="sr-only" type="file" id="image" name="image" accept="image/gif, image/jpeg, image/png, image/webp" required>
+                <img id="photo-preview" alt="" hidden>
+            </label>
 
-            <label for="location">Location:</label>
-            <input type="text" id="location" name="location" maxlength="100">
+            <section class="add-item-section" aria-labelledby="basics-heading">
+                <h2 id="basics-heading">Basics</h2>
 
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" maxlength="500"></textarea>
+                <label class="field">
+                    <span class="field-label">Title</span>
+                    <input type="text" id="title" name="title" maxlength="150" placeholder="All black for the show" required>
+                </label>
+            </section>
+
+            <section class="add-item-section" aria-labelledby="occasion-heading">
+                <div class="add-item-section-head">
+                    <h2 id="occasion-heading">Occasion &amp; date</h2>
+                    <span class="add-item-optional">optional</span>
+                </div>
+
+                <label class="field">
+                    <span class="field-label">Occasion</span>
+                    <input type="text" id="occasion" name="occasion" maxlength="100" placeholder="Concert, first day of school, date night…">
+                </label>
+
+                <div class="field-row">
+                    <label class="field">
+                        <span class="field-label">Worn on</span>
+                        <input type="date" id="worn-on" name="worn_on">
+                    </label>
+                    <label class="field field-wide">
+                        <span class="field-label">Location</span>
+                        <input type="text" id="location" name="location" maxlength="100" placeholder="Brooklyn, NY">
+                    </label>
+                </div>
+            </section>
+
+            <section class="add-item-section" aria-labelledby="notes-heading">
+                <div class="add-item-section-head">
+                    <h2 id="notes-heading">Description</h2>
+                    <span class="add-item-optional">optional</span>
+                </div>
+                <label class="field">
+                    <span class="sr-only">Description</span>
+                    <textarea id="description" name="description" maxlength="500" placeholder="The vibe, where the pieces are from, how it came together…"></textarea>
+                </label>
+            </section>
 
             <p id="status" role="status"></p>
-            <button type="submit" id="submit-btn" >Add Outfit</button>
+
+            <div class="add-item-actions">
+                <button type="submit" id="submit-btn">add outfit</button>
+                <a href="outfits.html">cancel</a>
+            </div>
         </form>
     </main>
 
@@ -68,6 +319,13 @@
         const form = document.getElementById('outfit-form');
         const submitBtn = document.getElementById('submit-btn');
         const statusEl = document.getElementById('status');
+        const imageInput = document.getElementById('image');
+        const photoDrop = document.getElementById('photo-drop');
+        const photoPreview = document.getElementById('photo-preview');
+        const wornOnInput = document.getElementById('worn-on');
+
+        let currentUser = null;
+        requireUser().then((user) => { currentUser = user; });
 
         const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
         const EXT_BY_TYPE = {
@@ -76,6 +334,49 @@
             'image/gif': 'gif',
             'image/webp': 'webp'
         };
+
+        // An outfit can't be worn in the future (local date, not UTC)
+        const now = new Date();
+        wornOnInput.max = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+        function setStatus(message, isInfo = false) {
+            statusEl.textContent = message;
+            statusEl.classList.toggle('is-info', isInfo);
+        }
+
+        // Photo preview + drag and drop
+        let previewUrl = null;
+        function showPreview(file) {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+            if (!file || !EXT_BY_TYPE[file.type]) {
+                previewUrl = null;
+                photoPreview.hidden = true;
+                photoDrop.classList.remove('has-image');
+                return;
+            }
+            previewUrl = URL.createObjectURL(file);
+            photoPreview.src = previewUrl;
+            photoPreview.hidden = false;
+            photoDrop.classList.add('has-image');
+        }
+
+        imageInput.addEventListener('change', () => showPreview(imageInput.files[0]));
+
+        photoDrop.addEventListener('dragover', (event) => {
+            event.preventDefault();
+            photoDrop.classList.add('is-dragging');
+        });
+        photoDrop.addEventListener('dragleave', () => photoDrop.classList.remove('is-dragging'));
+        photoDrop.addEventListener('drop', (event) => {
+            event.preventDefault();
+            photoDrop.classList.remove('is-dragging');
+            const file = event.dataTransfer.files[0];
+            if (!file) return;
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            imageInput.files = transfer.files;
+            showPreview(file);
+        });
 
         async function getImageSize(file) {
             try {
@@ -88,33 +389,47 @@
             }
         }
 
-        // Using the form's submit event lets the browser enforce `required` first
         form.addEventListener('submit', async (event) => {
             event.preventDefault();
 
-            const imageFile = document.getElementById('image').files[0];
+            if (!currentUser) {
+                setStatus('Checking your login. Please try again in a moment.', true);
+                return;
+            }
+
+            const imageFile = imageInput.files[0];
             const title = document.getElementById('title').value.trim();
             const location = document.getElementById('location').value.trim();
             const description = document.getElementById('description').value.trim();
+            const occasion = document.getElementById('occasion').value.trim();
+            const wornOn = wornOnInput.value;
 
-            if (!title || !imageFile) {
-                statusEl.textContent = 'Please add a title and select an image.';
+            const missing = [];
+            if (!imageFile) missing.push('a photo');
+            if (!title) missing.push('a title');
+            if (missing.length) {
+                setStatus(`Please add ${missing.join(' and ')}.`);
                 return;
             }
 
             const ext = EXT_BY_TYPE[imageFile.type];
             if (!ext) {
-                statusEl.textContent = 'Unsupported image type. Use PNG, JPEG, GIF, or WebP.';
+                setStatus('Unsupported image type. Use PNG, JPEG, GIF, or WebP.');
                 return;
             }
 
             if (imageFile.size > MAX_SIZE) {
-                statusEl.textContent = 'Image must be under 5 MB.';
+                setStatus('Image must be under 5 MB.');
+                return;
+            }
+
+            if (wornOn && wornOn > wornOnInput.max) {
+                setStatus('The worn on date can\'t be in the future.');
                 return;
             }
 
             submitBtn.disabled = true;
-            statusEl.textContent = 'Uploading...';
+            setStatus('Uploading...', true);
 
             try {
                 const { width, height } = await getImageSize(imageFile);
@@ -134,18 +449,21 @@
 
                 const { error: insertError } = await supabaseClient.from('outfits').insert([{
                     title,
-                    location,
-                    description,
-                    img_url: urlData.publicUrl,   
+                    location: location || null,
+                    description: description || null,
+                    occasion: occasion || null,
+                    worn_on: wornOn || null,
+                    img_url: urlData.publicUrl,
                     width,
-                    height
+                    height,
+                    user_id: currentUser.id
                 }]);
                 if (insertError) throw insertError;
 
                 window.location.href = 'outfits.html';
             } catch (error) {
                 console.error('Error adding outfit:', error);
-                statusEl.textContent = 'There was an error adding the outfit. Please try again.';
+                setStatus('There was an error adding the outfit. Please try again.');
                 submitBtn.disabled = false;
             }
         });
