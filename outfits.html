@@ -904,6 +904,12 @@
             document.querySelectorAll('[data-signed-in-only]').forEach((el) => {
                 el.hidden = !currentUser;
             });
+            // outfits.html?who=mine (linked from the home dashboard) starts on the "mine" filter
+            const startWho = new URLSearchParams(location.search).get('who');
+            if (startWho === 'mine' && currentUser) {
+                view.who = 'mine';
+                whoButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.who === 'mine')));
+            }
             loadOutfits();
         })();
     </script>

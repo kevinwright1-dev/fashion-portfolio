@@ -159,6 +159,16 @@
                 return;
             }
 
+            // type="url" still accepts javascript: and data: links, so only allow http(s).
+            if (website) {
+                let parsed = null;
+                try { parsed = new URL(website); } catch { /* not a URL */ }
+                if (!parsed || !['http:', 'https:'].includes(parsed.protocol)) {
+                    statusEl.textContent = 'Website must start with http:// or https://';
+                    return;
+                }
+            }
+
             let ext = null;
             if (avatarFile) {
                 ext = EXT_BY_TYPE[avatarFile.type];

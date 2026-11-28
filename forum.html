@@ -9,46 +9,338 @@
     <script src="config.js"></script>
     <script src="session.js"></script>
     <style>
-        .reply-item {
-            padding: 0.5rem;
-            margin-bottom: 0.8rem;
+        /* ---------- layout ---------- */
+        .forum-wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
-        #reply-form {
-            margin-top: 10px;
+        .forum-wrap.narrow { max-width: 820px; }
+        .forum-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px;
         }
-        #new-thread-form .form-control,
-        #reply-form .form-control {
-            width: 100%;
-            max-width: none;
+        .forum-head h2 { margin: 0; }
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            white-space: nowrap;
+        }
+
+        /* ---------- buttons (same look as the rest of the site, smaller) ---------- */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 44px;
             box-sizing: border-box;
-        }
-        .children-container {
-            margin-top: 0.5rem;
-        }
-        .reply-button:hover, .toggle-children:hover {
-            background: #222;
-        }
-        #sort-controls {
-            float: right;
-            margin-left: 20px;
-            margin-bottom: 20px;
-        }
-
-        #sort-controls button {
-            margin-left: 8px;
-        }
-
-        .thread-item {
+            padding: 0 24px;
+            background: #000;
+            color: #fff;
+            border: 1px solid #fff;
+            font-family: inherit;
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: lowercase;
+            text-decoration: none;
             cursor: pointer;
-            margin-top: 1rem;
-            border: 1px solid #333;
-            padding: 1rem;
-            margin-bottom: 1rem;
         }
-        
+        .btn:hover { background: #222; color: #fff; }
+        .btn:disabled, .vote:disabled { opacity: 0.5; cursor: not-allowed; }
+        .text-btn, .act {
+            min-height: 36px;
+            padding: 0 6px;
+            background: transparent;
+            border: 0;
+            color: #999;
+            font-size: 12px;
+        }
+        .text-btn { min-height: 40px; font-size: 13px; }
+        .text-btn:hover, .act:hover { background: transparent; color: #fff; }
+        .vote {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 36px;
+            padding: 0 12px;
+            font-size: 12px;
+            letter-spacing: 0;
+        }
+        .vote-tall {
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            width: 52px;
+            min-height: 52px;
+            padding: 0;
+            font-size: 13px;
+            line-height: 1;
+        }
+        .fold {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            font-size: 12px;
+            letter-spacing: 0;
+        }
 
+        /* ---------- form bits ---------- */
+        .small-label { font-size: 11px; letter-spacing: 2px; color: #999; }
+        .caps { text-transform: uppercase; }
+        .field-label {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 0;
+            font-size: 12px;
+            color: #bbb;
+        }
+        .field {
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+        .field::placeholder { color: #8a8a8a; }
+        .field:focus-visible { outline: 1px solid #888; border-color: #888; }
+        textarea.field { resize: vertical; min-height: 120px; }
+        .counter { font-size: 12px; color: #8f8f8f; }
+        .form-msg { margin: 0; font-size: 13px; }
+        .form-msg:empty { display: none; }
+        .form-msg.error { color: #ff7a7a; }
+        .form-msg.status { color: #ccc; }
+        .notice { padding: 12px 16px; border: 1px solid #333; color: #ddd; }
+        .msg-col { display: flex; flex-direction: column; gap: 2px; }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 12px; }
+        .composer-foot {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ---------- new thread form ---------- */
+        .composer {
+            border: 1px solid #333;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .composer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ---------- search + sort ---------- */
+        .toolbar {
+            border: 1px solid #222;
+            padding: 20px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+        }
+        .search-field {
+            flex: 1 1 260px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            border-bottom: 1px solid #333;
+        }
+        .search-field:focus-within { border-bottom-color: #fff; }
+        .search-field input {
+            flex: 1;
+            min-width: 0;
+            width: auto;
+            height: 44px;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            font-size: 15px;
+            outline: none;
+        }
+        .search-field input::placeholder { color: #8a8a8a; }
+        .sort-field { display: flex; align-items: center; gap: 10px; margin: 0; }
+        .sort-field select {
+            width: auto;
+            height: 44px;
+            margin: 0;
+            padding: 0 36px 0 14px;
+            font-size: 13px;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background: #000 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+        }
+
+        /* ---------- thread list ---------- */
+        .thread-table { border: 1px solid #222; }
+        .thread-list { list-style: none; margin: 0; padding: 0; }
+        .thread-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 96px;
+            gap: 20px;
+            align-items: center;
+            padding: 18px 20px;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        .thread-list .thread-row:hover { background: #0f0f0f; }
+        .thread-head {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #8f8f8f;
+        }
+        .thread-head span:last-child, .vote-cell { text-align: center; }
+        .thread-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .title-link { color: #fff; text-decoration: none; font-size: 15px; font-weight: 500; }
+        .title-link:hover { color: #fff; text-decoration: underline; }
+        .preview {
+            margin: 0;
+            font-size: 13px;
+            color: #a8a8a8;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .byline { margin: 0; font-size: 12px; color: #8f8f8f; }
+        .byline .profile-name-link, .meta .profile-name-link { color: #ccc; }
+        .meta .profile-name-link { color: #fff; font-weight: 500; }
+        .list-msg {
+            margin: 0;
+            padding: 48px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            color: #9a9a9a;
+            font-size: 14px;
+            text-align: center;
+        }
+        .load-more { display: flex; flex-direction: column; align-items: center; gap: 8px; padding-top: 8px; }
+        .load-more .btn { padding: 0 40px; }
+
+        /* ---------- thread view ---------- */
+        .thread-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 40px;
+            color: #ccc;
+            text-decoration: none;
+            font-size: 13px;
+        }
+        .back-link:hover { color: #fff; }
+        .copy-wrap { display: flex; align-items: center; gap: 12px; }
+        .op {
+            border: 1px solid #222;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #8f8f8f;
+        }
+        .op-title {
+            margin: 0;
+            text-align: left;
+            font-size: 22px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            line-height: 1.35;
+        }
+        .op-body { margin: 0; color: #d6d6d6; font-size: 15px; line-height: 1.8; }
+        .op-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+        .reply-compose { display: flex; flex-direction: column; gap: 10px; }
+        .reply-compose textarea.field { min-height: 90px; }
+        .replies-head {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #222;
+        }
+        .replies-head h2 { margin: 0; font-size: 14px; letter-spacing: 3px; }
+        .reply-sort { display: flex; gap: 18px; }
+        .sort-chip {
+            min-height: 36px;
+            padding: 0;
+            background: transparent;
+            border: 0;
+            border-bottom: 1px solid transparent;
+            color: #999;
+            font-size: 13px;
+            letter-spacing: 0;
+        }
+        .sort-chip:hover { background: transparent; color: #fff; }
+        .sort-chip[aria-pressed="true"] { color: #fff; border-bottom-color: #fff; }
+
+        /* ---------- replies ---------- */
+        .reply-list, .reply-children { list-style: none; margin: 0; padding: 0; }
+        .reply-children { margin-left: 28px; }
+        .reply-children.flat { margin-left: 0; }
+        .reply-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 14px 18px 10px;
+            border: 1px solid #222;
+        }
+        .reply-main { display: flex; align-items: center; gap: 16px; }
+        .reply-content { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+        .reply-text { margin: 0; color: #d6d6d6; font-size: 14px; line-height: 1.7; }
+        .reply-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+        .hidden-note { color: #bbb; }
+        .hidden-note:empty { display: none; }
+        .inline-reply { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+        .inline-reply textarea.field { min-height: 80px; }
+
+        @media (max-width: 760px) {
+            .thread-row { grid-template-columns: minmax(0, 1fr) 52px; gap: 10px; padding: 16px 12px; }
+            .vote-tall { width: 44px; min-height: 48px; }
+            .thread-head { letter-spacing: 0; font-size: 10px; }
+            .toolbar, .composer, .op { padding: 16px; }
+            .reply-box { padding: 10px 12px 6px; }
+            .reply-children { margin-left: 14px; }
+        }
     </style>
-    
 </head>
 <body>
     <nav>
@@ -61,391 +353,693 @@
         <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
     <main>
-        <div id="board-view">
-            <h2 style="margin-bottom: 1rem;">forum</h2>
-            <button id="start-thread">create thread</button>
-            <div id="sort-controls">
-                <button data-sort="new">New</button>
-                <button data-sort="old">Old</button>
-                <button data-sort="top">Top</button>
+        <div class="forum-wrap" style="margin-bottom: 24px;">
+            <p id="forum-notice" class="form-msg error notice" role="alert"></p>
+        </div>
+
+        <!-- Board: the list of threads (forum.html) -->
+        <div id="board-view" class="forum-wrap" hidden>
+            <div class="forum-head">
+                <h2>forum</h2>
+                <button type="button" id="start-thread" class="btn" aria-expanded="false" aria-controls="new-thread-form">start thread</button>
             </div>
 
-            <div id="new-thread-form" style="display:none;">
-                <input type="text" id="thread-title" class="form-control" placeholder="thread title" maxlength="150" required>
-                <textarea id="thread-content" class="form-control" placeholder="write your message..." maxlength="2000" required></textarea>
-                <button id="submit-thread">post thread</button>
-                <button id="cancel-thread">cancel</button>
+            <section id="new-thread-form" class="composer" aria-label="Start thread" hidden>
+                <div class="composer-top">
+                    <span class="small-label caps">new thread</span>
+                    <button type="button" id="close-thread" class="text-btn">close</button>
+                </div>
+                <label class="field-label">
+                    title
+                    <input type="text" id="thread-title" class="field" maxlength="150" placeholder="what do you want to ask?">
+                </label>
+                <label class="field-label">
+                    message
+                    <textarea id="thread-content" class="field" maxlength="2000" rows="5" placeholder="write your message..."></textarea>
+                </label>
+                <div class="composer-foot">
+                    <div class="msg-col">
+                        <span id="thread-chars" class="counter">0 / 2000</span>
+                        <p id="thread-error" class="form-msg error" role="alert"></p>
+                    </div>
+                    <div class="btn-row">
+                        <button type="button" id="cancel-thread" class="btn">cancel</button>
+                        <button type="button" id="submit-thread" class="btn">post thread</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="toolbar" aria-label="Search and sort threads">
+                <label class="search-field">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg>
+                    <span class="visually-hidden">Search threads</span>
+                    <input type="search" id="thread-search" placeholder="search threads">
+                </label>
+                <label class="sort-field">
+                    <span class="small-label caps">sort</span>
+                    <select id="thread-sort">
+                        <option value="new">new</option>
+                        <option value="top">top</option>
+                        <option value="old">old</option>
+                    </select>
+                </label>
+            </section>
+
+            <div class="thread-table">
+                <div class="thread-row thread-head" aria-hidden="true">
+                    <span>thread</span>
+                    <span>upvotes</span>
+                </div>
+                <ul id="thread-list" class="thread-list"></ul>
+                <div id="thread-list-msg" class="list-msg" hidden>
+                    <span id="thread-list-text"></span>
+                    <button type="button" id="clear-search" class="btn" hidden>clear search</button>
+                </div>
             </div>
 
-
-            <div id="thread-list">
-                <!-- threads get rendered here by JS -->
+            <div class="load-more">
+                <button type="button" id="load-more" class="btn" hidden>load more</button>
+                <span id="thread-shown" class="counter"></span>
             </div>
         </div>
 
-        <div id="thread-view" style="display:none;">
-            <button id="back-to-board">&larr; back to board</button>
-            <div id="thread-display">
-                <!-- selected thread's title/author show here -->
+        <!-- One thread and its replies (forum.html?thread=<id>) -->
+        <div id="thread-view" class="forum-wrap narrow" hidden>
+            <div class="thread-top">
+                <a href="forum.html" id="back-to-board" class="back-link">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg>
+                    forum
+                </a>
+                <div class="copy-wrap">
+                    <p id="copy-status" class="form-msg status" role="status"></p>
+                    <button type="button" id="copy-link" class="btn">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"></path><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"></path></svg>
+                        copy link
+                    </button>
+                </div>
             </div>
-            <div id="reply-form">
-                <input type="hidden" id="reply-parent-id" value="">
-                <textarea id="reply-content" class="form-control" placeholder="write your reply..." maxlength="1000" required></textarea>
-                <button id="submit-reply">post reply</button>
-                <button id="cancel-reply">cancel</button>
-            </div>
-            <h3 id="replies-heading"> Replies:</h3>
-            <div id="reply-list">
-                <!-- replies get rendered here -->
+
+            <div id="thread-msg" class="list-msg" hidden></div>
+
+            <article id="thread-display" class="op" hidden></article>
+
+            <div id="thread-body" class="forum-wrap narrow" style="width: 100%;" hidden>
+                <section class="reply-compose" aria-label="Add a reply">
+                    <label for="reply-content" class="small-label">add a reply</label>
+                    <textarea id="reply-content" class="field" maxlength="1000" rows="3" placeholder="write your reply..."></textarea>
+                    <div class="composer-foot">
+                        <div class="msg-col">
+                            <span id="reply-chars" class="counter">0 / 1000</span>
+                            <p id="reply-error" class="form-msg error" role="alert"></p>
+                            <p id="reply-status" class="form-msg status" role="status"></p>
+                        </div>
+                        <button type="button" id="submit-reply" class="btn">post reply</button>
+                    </div>
+                </section>
+
+                <div class="replies-head">
+                    <h2 id="replies-heading">replies</h2>
+                    <div class="reply-sort" role="group" aria-label="Sort replies">
+                        <button type="button" class="sort-chip" data-sort="old" aria-pressed="true">oldest</button>
+                        <button type="button" class="sort-chip" data-sort="top" aria-pressed="false">top</button>
+                    </div>
+                </div>
+                <ol id="reply-list" class="reply-list"></ol>
             </div>
         </div>
-
     </main>
-   
 
-    <script >
-        let currentThread = null;
-        function showThread(thread) {
-            currentThread = thread;
-            document.getElementById('thread-display').innerHTML = `
-                <h3>${escapeHTML(thread.title)}</h3>
-                <p><em>posted by ${authorLinkHTML(thread.author_name, thread.user_id)}</em></p>
-                <p>${escapeHTML(thread.content)}</p>
-                <p><small>posted on ${formatDate(thread.created_at)}</small></p>
-                <button class="upvote-thread">▲ ${thread.upvotes}</button>
-            `;
-            const upvoteBtn = document.querySelector('#thread-display .upvote-thread');
-            upvoteBtn.addEventListener('click', async () => {
-                const { data, error } = await supabaseClient
-                    .rpc('add_upvote_thread', { p_threads_id: thread.id });
+    <script>
+        const PAGE_SIZE = 20;
+        const $ = (id) => document.getElementById(id);
+        const boardView = $('board-view');
+        const threadView = $('thread-view');
 
-                if (error) {
-                    console.error(error);
-                    alert(error.message);
-                    return;
-                }
-                thread.upvotes = data;
-                upvoteBtn.textContent = `▲ ${thread.upvotes}`;
-            });
+        // ---------- small helpers ----------
 
+        // Builds an element. Strings become text (never HTML), so user text is safe.
+        // h('a', { class: 'x', href: '#', onclick: fn }, 'text', childEl)
+        function h(tag, props = {}, ...children) {
+            const el = document.createElement(tag);
+            for (const [key, value] of Object.entries(props)) {
+                if (value == null || value === false) continue;
+                if (key === 'class') el.className = value;
+                else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+                else el.setAttribute(key, value === true ? '' : value);
+            }
+            el.append(...children.filter((c) => c != null && c !== false));
+            return el;
+        }
 
-            document.getElementById('board-view').style.display = 'none';
-            document.getElementById('thread-view').style.display = 'block';
-            loadReplyList();
+        function upArrow() {
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('width', '11');
+            svg.setAttribute('height', '11');
+            svg.setAttribute('viewBox', '0 0 12 12');
+            svg.setAttribute('aria-hidden', 'true');
+            const path = document.createElementNS(ns, 'path');
+            path.setAttribute('d', 'M6 2l5 7H1z');
+            path.setAttribute('fill', 'currentColor');
+            svg.append(path);
+            return svg;
         }
-        function resetReplyForm() {
-            const form = document.getElementById('reply-form');
-            document.getElementById('cancel-reply').style.display = 'none';
-            document.getElementById('thread-view')
-                .insertBefore(form, document.getElementById('replies-heading').nextSibling);
-            document.getElementById('reply-parent-id').value = '';
+
+        function setMsg(el, text) {
+            el.textContent = text || '';
         }
-        function escapeHTML(str) {
-            const div = document.createElement('div');
-            div.textContent = str;
-            return div.innerHTML;
+
+        // Page-level message (failed upvotes and the like). Clears itself.
+        let noticeTimer = null;
+        function showNotice(text) {
+            setMsg($('forum-notice'), text);
+            clearTimeout(noticeTimer);
+            noticeTimer = setTimeout(() => setMsg($('forum-notice'), ''), 5000);
         }
-        // Username as a link to their profile (outerHTML is already escaped).
-        function authorLinkHTML(name, userId) {
-            return makeProfileLink(name, userId).outerHTML;
+
+        function plural(n, word) {
+            return `${n} ${n === 1 ? word : word === 'reply' ? 'replies' : word + 's'}`;
         }
-        function formatDate(isoString) {
-            const date = new Date(isoString);
-            return date.toLocaleString();
+
+        // "just now", "12m ago", "3h ago", "2d ago", then "oct 2"
+        function timeAgo(iso) {
+            const date = new Date(iso);
+            const mins = Math.floor((Date.now() - date) / 60000);
+            if (mins < 1) return 'just now';
+            if (mins < 60) return `${mins}m ago`;
+            const hours = Math.floor(mins / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            const opts = { month: 'short', day: 'numeric' };
+            if (date.getFullYear() !== new Date().getFullYear()) opts.year = 'numeric';
+            return date.toLocaleDateString('en-US', opts).toLowerCase();
         }
-        function previewText(text, maxLength = 200) {
+
+        function timeEl(iso) {
+            return h('time', { datetime: iso, title: new Date(iso).toLocaleString() }, timeAgo(iso));
+        }
+
+        // "@name" linking to the poster's profile (plain text if the post has no user).
+        function userLink(name, userId) {
+            const el = makeProfileLink(name, userId);
+            el.textContent = '@' + el.textContent;
+            return el;
+        }
+
+        function previewText(text, maxLength = 160) {
             if (!text) return '';
             const firstPara = text.split(/\n+/)[0].trim();
-            if (firstPara.length <= maxLength) return firstPara;
-            return firstPara.substring(0, maxLength) + '...';
+            return firstPara.length <= maxLength ? firstPara : firstPara.substring(0, maxLength) + '...';
         }
-        function buildReplyTree(replies) {
-            const map = {};
-            replies.forEach(r => map[r.id] = { ...r, children: [] });
 
-            const roots = [];
-
-            replies.forEach(r => {
-                const parent = map[r.parent_reply_id];
-                if (r.parent_reply_id && parent) {
-                    parent.children.push(map[r.id]);
-                } else {
-                    roots.push(map[r.id]);
-                }
-            });
-
-            return roots;
-        }
-        function renderReply(reply, container, depth = 0) {
-            const item = document.createElement('div');
-            item.className = 'reply-item';
-            item.style.marginLeft = `${depth * 20}px`;
-
-            const hasChildren = reply.children.length > 0;
-
-            const childrenContainer = document.createElement('div');
-            childrenContainer.className = 'children-container';
-
-
-            item.innerHTML = `
-                <p><em>${authorLinkHTML(reply.author_name, reply.user_id)}</em></p>
-                <p>${escapeHTML(reply.content)}</p>
-                <p><small>${formatDate(reply.created_at)}</small></p>
-                <button class="upvote-reply">▲ ${reply.upvotes}</button>
-                <button class="reply-button">reply</button>
-                ${hasChildren ? `<button class="toggle-children">hide replies</button>` : ""}
-            `;
-
-            item.querySelector('.upvote-reply').addEventListener('click', async () => {
-                const { data, error } = await supabaseClient
-                    .rpc('add_upvote_reply', { reply_id: reply.id });
-
+        // Upvote button. Uses the existing RPCs: each click adds one.
+        function voteButton(item, kind, tall) {
+            const count = h('span', {}, String(item.upvotes ?? 0));
+            const btn = h('button', { type: 'button', class: tall ? 'vote vote-tall' : 'vote' }, upArrow(), count);
+            const label = () => `Upvote, ${item.upvotes ?? 0} upvotes`;
+            btn.setAttribute('aria-label', label());
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                const { data, error } = kind === 'thread'
+                    ? await supabaseClient.rpc('add_upvote_thread', { p_threads_id: item.id })
+                    : await supabaseClient.rpc('add_upvote_reply', { reply_id: item.id });
+                btn.disabled = false;
                 if (error) {
                     console.error(error);
-                    alert(error.message);
+                    showNotice("couldn't add your upvote, try again");
                     return;
                 }
-                reply.upvotes = data;
-                item.querySelector('.upvote-reply').textContent = `▲ ${reply.upvotes}`;
+                item.upvotes = data;
+                count.textContent = String(data);
+                btn.setAttribute('aria-label', label());
             });
-            item.querySelector('.reply-button').addEventListener('click', () => {
-                document.getElementById('reply-parent-id').value = reply.id;
-
-                const replyForm = document.getElementById('reply-form');
-                document.getElementById('cancel-reply').style.display = 'inline-block';
-
-                const childrenContainer = item.querySelector('.children-container');
-                if (childrenContainer) {
-                    item.insertBefore(replyForm, childrenContainer);
-                } else {
-                    item.appendChild(replyForm);
-                }
-
-                document.getElementById('reply-content').focus();
-            });
-
-            container.appendChild(item);
-
-
-            if (hasChildren) {
-                const childrenContainer = document.createElement('div');
-                childrenContainer.className = 'children-container';
-                childrenContainer.style.marginLeft = `${(depth + 1) * 20}px`;
-
-                reply.children.forEach(child => renderReply(child, childrenContainer, depth + 1));
-                item.appendChild(childrenContainer);
-
-
-                const toggleBtn = item.querySelector('.toggle-children');
-                toggleBtn.addEventListener('click', () => {
-                    const isHidden = childrenContainer.style.display === 'none';
-                    childrenContainer.style.display = isHidden ? 'block' : 'none';
-                    toggleBtn.textContent = isHidden ? 'hide replies' : 'show replies';
-                });
-            }
+            return btn;
         }
 
+        // ---------- routing: forum.html = board, forum.html?thread=<id> = one thread ----------
 
+        const boardUrl = location.pathname;
+        const threadUrl = (id) => `${location.pathname}?thread=${encodeURIComponent(id)}`;
 
+        // Let ctrl/cmd/middle-click open a new tab as normal.
+        function isPlainClick(e) {
+            return e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+        }
 
-        let currentSort = 'top';
-        
-        async function loadThreadList(sortMethod = currentSort) {
+        function go(url) {
+            history.pushState(null, '', url);
+            route();
+            window.scrollTo(0, 0);
+        }
 
-            document.getElementById('start-thread').style.display = 'inline-block';
-            document.getElementById('sort-controls').style.display = 'inline-block';
-            document.getElementById('new-thread-form').style.display = 'none';
+        function route() {
+            const id = new URLSearchParams(location.search).get('thread');
+            setMsg($('forum-notice'), '');
+            if (id) showThreadView(id);
+            else showBoard();
+        }
 
-            currentSort = sortMethod;
+        window.addEventListener('popstate', route);
+
+        // ---------- board ----------
+
+        const board = { sort: 'new', query: '', loaded: 0, total: 0, requestId: 0 };
+
+        function showBoard() {
+            threadView.hidden = true;
+            boardView.hidden = false;
+            document.title = 'Forum';
+            loadThreads(true);
+        }
+
+        // Search text goes inside a PostgREST filter, so drop the characters it uses.
+        function cleanSearch(text) {
+            // Commas, brackets, *, % and : have meaning inside .or(); drop them from the search text.
+            return text.replace(/[%*,()\\:"]/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        async function loadThreads(reset) {
+            const requestId = ++board.requestId;
+            const listEl = $('thread-list');
+            const moreBtn = $('load-more');
+            if (reset) {
+                board.loaded = 0;
+                listEl.replaceChildren();
+                showListMsg('loading threads...');
+                $('thread-shown').textContent = '';
+                moreBtn.hidden = true;
+            }
+            moreBtn.disabled = true;
+
             const sorts = { new: ['created_at', false], old: ['created_at', true], top: ['upvotes', false] };
-            const [col, asc] = sorts[sortMethod];
-            document.getElementById('thread-list').innerHTML = '<p>loading threads...</p>';
-
-
-            const { data: threads, error } = await supabaseClient
+            const [col, asc] = sorts[board.sort];
+            let query = supabaseClient
                 .from('threads')
-                .select('*, thread_replies(count)')
-                .order(col, { ascending: asc })
+                .select('*, thread_replies(count)', { count: 'exact' })
+                .order(col, { ascending: asc });
+            if (col !== 'created_at') query = query.order('created_at', { ascending: false });
+            const term = cleanSearch(board.query);
+            if (term) query = query.or(`title.ilike.*${term}*,content.ilike.*${term}*`);
+
+            const { data, error, count } = await query.range(board.loaded, board.loaded + PAGE_SIZE - 1);
+            if (requestId !== board.requestId) return; // a newer search or sort has started
+            moreBtn.disabled = false;
 
             if (error) {
                 console.error(error);
-                alert(error.message);
+                showListMsg("couldn't load threads, try refreshing the page");
                 return;
             }
 
-            const listEl = document.getElementById('thread-list');
-            listEl.innerHTML = '';
-            if (threads.length === 0) {
-                listEl.innerHTML = '<p>no threads yet</p>';
-                return;
-            }
+            board.total = count ?? 0;
+            board.loaded += data.length;
+            data.forEach((thread) => listEl.append(threadRow(thread)));
 
-            threads.forEach(thread => {
-                const item = document.createElement('div');
-                item.className = 'thread-item';
-                item.innerHTML = `
-                <h3>${escapeHTML(thread.title)}</h3>
-                <p><em>by ${authorLinkHTML(thread.author_name, thread.user_id)}</em></p>
-                <p>${escapeHTML(previewText(thread.content))}</p>
-                <p><small>posted on ${formatDate(thread.created_at)}</small></p>
-                <button class="upvote-thread">▲ ${thread.upvotes}</button>
-                <button class="reply-count">💬 ${thread.thread_replies[0]?.count || 0}</button>
-                `;
-                item.addEventListener('click', (e) => {
-                    // Let the username link go to the profile instead of opening the thread
-                    if (e.target.closest('a')) return;
-                    showThread(thread);
-                });
-                item.querySelector('.upvote-thread').addEventListener('click', async (e) => {
-                    e.stopPropagation();
+            if (board.loaded === 0) showListMsg(term ? 'no threads match that search' : 'no threads yet', !!term);
+            else showListMsg('');
+            moreBtn.hidden = board.loaded >= board.total;
+            $('thread-shown').textContent = board.loaded ? `showing ${board.loaded} of ${board.total}` : '';
+        }
 
-                    const { data, error } = await supabaseClient
-                        .rpc('add_upvote_thread', { p_threads_id: thread.id });
+        function showListMsg(text, withClear = false) {
+            $('thread-list-msg').hidden = !text;
+            setMsg($('thread-list-text'), text);
+            $('clear-search').hidden = !withClear;
+        }
 
-                    if (error) {
-                        console.error(error);
-                        alert(error.message);
-                        return;
-                    }
-
-                    thread.upvotes = data;
-                    item.querySelector('.upvote-thread').textContent = `▲ ${thread.upvotes}`;
-                });
-
-                listEl.appendChild(item);
+        function threadRow(thread) {
+            const replies = thread.thread_replies?.[0]?.count ?? 0;
+            const link = h('a', { class: 'title-link', href: threadUrl(thread.id) }, thread.title);
+            link.addEventListener('click', (e) => {
+                if (!isPlainClick(e)) return;
+                e.preventDefault();
+                go(threadUrl(thread.id));
             });
-        }
-        async function loadReplyList() {
-            resetReplyForm();
-            const { data: replies, error } = await supabaseClient
-                .from('thread_replies')
-                .select('*')
-                .eq('thread_id', currentThread.id)
-                .order('created_at', { ascending: true });
-            
-            if (error) {
-                console.error(error);
-                alert(error.message);
-                return;
-            }
-
-            const listEl = document.getElementById('reply-list');
-            listEl.innerHTML = '';
-
-            const tree = buildReplyTree(replies);
-
-            tree.forEach(root => renderReply(root, listEl));
+            return h('li', { class: 'thread-row' },
+                h('div', { class: 'thread-main' },
+                    link,
+                    h('p', { class: 'preview' }, previewText(thread.content)),
+                    h('p', { class: 'byline' },
+                        'by ', userLink(thread.author_name, thread.user_id),
+                        ' / ', timeEl(thread.created_at),
+                        ' / ', plural(replies, 'reply'))),
+                h('div', { class: 'vote-cell' }, voteButton(thread, 'thread', true)));
         }
 
-        document.getElementById('start-thread').addEventListener('click', () => {
-            const form = document.getElementById('new-thread-form');
-            document.getElementById('start-thread').style.display = 'none';
-            document.getElementById('sort-controls').style.display = 'none';
-            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        let searchTimer = null;
+        $('thread-search').addEventListener('input', (e) => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                board.query = e.target.value;
+                loadThreads(true);
+            }, 300);
         });
-        document.getElementById('submit-thread').addEventListener('click', async () => {
-            const titleInput = document.getElementById('thread-title');
-            const contentInput = document.getElementById('thread-content');
+        $('thread-sort').addEventListener('change', (e) => {
+            board.sort = e.target.value;
+            loadThreads(true);
+        });
+        $('clear-search').addEventListener('click', () => {
+            $('thread-search').value = '';
+            board.query = '';
+            loadThreads(true);
+        });
+        $('load-more').addEventListener('click', () => loadThreads(false));
 
+        // ---------- new thread form ----------
+
+        const titleInput = $('thread-title');
+        const contentInput = $('thread-content');
+
+        function setComposerOpen(open) {
+            $('new-thread-form').hidden = !open;
+            $('start-thread').setAttribute('aria-expanded', String(open));
+            if (open) {
+                titleInput.focus();
+            } else {
+                titleInput.value = '';
+                contentInput.value = '';
+                $('thread-chars').textContent = '0 / 2000';
+                setMsg($('thread-error'), '');
+            }
+        }
+
+        $('start-thread').addEventListener('click', () => setComposerOpen($('new-thread-form').hidden));
+        $('close-thread').addEventListener('click', () => setComposerOpen(false));
+        $('cancel-thread').addEventListener('click', () => setComposerOpen(false));
+        titleInput.addEventListener('input', () => setMsg($('thread-error'), ''));
+        contentInput.addEventListener('input', () => {
+            $('thread-chars').textContent = `${contentInput.value.length} / 2000`;
+            setMsg($('thread-error'), '');
+        });
+
+        $('submit-thread').addEventListener('click', async () => {
             const title = titleInput.value.trim();
             const content = contentInput.value.trim();
+            const errorEl = $('thread-error');
 
-            if (!title || !content) {
-                alert('please enter a title and a message for your thread');
-                return;
-            }
-            if (title.length > 150) {
-                alert('title must be 150 characters or less');
-                return;
-            }
-            if (content.length > 2000) {
-                alert('message must be 2000 characters or less');
-                return;
-            }
+            if (!title && !content) return setMsg(errorEl, 'add a title and a message first');
+            if (!title) return setMsg(errorEl, 'add a title first');
+            if (!content) return setMsg(errorEl, 'add a message first');
+            if (title.length > 150) return setMsg(errorEl, 'title must be 150 characters or less');
+            if (content.length > 2000) return setMsg(errorEl, 'message must be 2000 characters or less');
 
-            const submitButton = document.getElementById('submit-thread');
+            const submitButton = $('submit-thread');
             submitButton.disabled = true;
-
             try {
                 const { data, error } = await supabaseClient
                     .from('threads')
                     .insert({ title, content })
-                    .select();
-
+                    .select()
+                    .single();
                 if (error) {
                     console.error(error);
-                    alert('failed to create thread');
+                    setMsg(errorEl, "couldn't post your thread, try again");
                     return;
                 }
-                titleInput.value = '';
-                contentInput.value = '';
-                const newThread = data[0];
-                loadThreadList();
-                showThread(newThread);
+                setComposerOpen(false);
+                go(threadUrl(data.id));
             } finally {
                 submitButton.disabled = false;
             }
-            document.getElementById('new-thread-form').style.display = 'none';
-            document.getElementById('start-thread').style.display = 'inline-block';
-            document.getElementById('sort-controls').style.display = 'inline-block';
-
         });
-        document.getElementById('submit-reply').addEventListener('click', async () => {
-            const contentInput = document.getElementById('reply-content');
-            const parentIdInput = document.getElementById('reply-parent-id');
 
-            const content = contentInput.value.trim();
-            const parent_reply_id = parentIdInput.value || null;
+        // ---------- thread view ----------
 
-            if (!content) {
-                alert('please enter a message for your reply');
+        const view = { thread: null, replies: [], sort: 'old', collapsed: new Set(), openForm: null, requestId: 0 };
+
+        async function showThreadView(id) {
+            boardView.hidden = true;
+            threadView.hidden = false;
+            const requestId = ++view.requestId;
+
+            if (String(view.thread?.id) !== String(id)) view.collapsed = new Set();
+            view.thread = null;
+            $('thread-display').hidden = true;
+            $('thread-body').hidden = true;
+            $('thread-msg').hidden = false;
+            $('copy-link').hidden = true;
+            setMsg($('thread-msg'), 'loading thread...');
+            setMsg($('copy-status'), '');
+            resetReplyComposer();
+
+            const { data, error } = await supabaseClient.from('threads').select('*').eq('id', id).maybeSingle();
+            if (requestId !== view.requestId) return; // the user moved on
+
+            if (error || !data) {
+                // 22P02 = the id in the link isn't a valid id at all
+                if (error && error.code !== '22P02') {
+                    console.error(error);
+                    setMsg($('thread-msg'), "couldn't load this thread, try refreshing the page");
+                } else {
+                    setMsg($('thread-msg'), 'thread not found');
+                }
+                document.title = 'Forum';
                 return;
+            }
+
+            view.thread = data;
+            document.title = `${data.title} | Forum`;
+            $('thread-msg').hidden = true;
+            $('copy-link').hidden = false;
+            renderOp(data);
+            $('thread-display').hidden = false;
+            $('thread-body').hidden = false;
+            await loadReplies();
+        }
+
+        function renderOp(thread) {
+            const actions = h('div', { class: 'op-actions' }, voteButton(thread, 'thread', false));
+
+            // EDIT / DELETE (own thread): uncomment when edit + delete are ready.
+            // Needs: const currentUser = await getSignedInUser();
+            // if (currentUser && currentUser.id === thread.user_id) {
+            //     actions.append(
+            //         h('span', { style: 'flex: 1;' }),
+            //         h('button', { type: 'button', class: 'act' }, 'edit'),
+            //         h('button', { type: 'button', class: 'act' }, 'delete'));
+            // }
+            // END EDIT / DELETE
+
+            $('thread-display').replaceChildren(
+                h('div', { class: 'meta' },
+                    h('span', {}, 'by ', userLink(thread.author_name, thread.user_id), ' / ', timeEl(thread.created_at))),
+                h('h1', { class: 'op-title' }, thread.title),
+                h('p', { class: 'op-body' }, thread.content),
+                actions);
+        }
+
+        async function loadReplies() {
+            const threadId = view.thread.id;
+            const { data, error } = await supabaseClient
+                .from('thread_replies')
+                .select('*')
+                .eq('thread_id', threadId)
+                .order('created_at', { ascending: true });
+            if (view.thread?.id !== threadId) return;
+
+            if (error) {
+                console.error(error);
+                $('replies-heading').textContent = 'replies';
+                $('reply-list').replaceChildren(h('li', { class: 'list-msg' }, "couldn't load replies, try refreshing the page"));
+                return;
+            }
+            view.replies = data;
+            renderReplies();
+        }
+
+        // Turns the flat list into a tree: each reply gets a children array.
+        function buildReplyTree(replies) {
+            const byId = {};
+            replies.forEach((r) => {
+                r.children = [];
+                byId[r.id] = r;
+            });
+            const roots = [];
+            replies.forEach((r) => {
+                const parent = r.parent_reply_id && byId[r.parent_reply_id];
+                if (parent) parent.children.push(r);
+                else roots.push(r);
+            });
+            return roots;
+        }
+
+        function sortTree(nodes) {
+            const byDate = (a, b) => new Date(a.created_at) - new Date(b.created_at);
+            nodes.sort(view.sort === 'top' ? (a, b) => (b.upvotes ?? 0) - (a.upvotes ?? 0) || byDate(a, b) : byDate);
+            nodes.forEach((n) => sortTree(n.children));
+            return nodes;
+        }
+
+        function countAll(reply) {
+            return reply.children.reduce((n, child) => n + 1 + countAll(child), 0);
+        }
+
+        function renderReplies() {
+            view.openForm = null;
+            $('replies-heading').textContent = plural(view.replies.length, 'reply');
+            const tree = sortTree(buildReplyTree(view.replies));
+            $('reply-list').replaceChildren(...tree.map((reply) => renderReply(reply, 0)));
+        }
+
+        function renderReply(reply, depth) {
+            const name = reply.author_name || 'anon';
+            const meta = h('div', { class: 'meta' });
+            const hiddenNote = h('span', { class: 'hidden-note' });
+            let fold = null;
+            if (reply.children.length) {
+                fold = h('button', { type: 'button', class: 'fold' });
+                meta.append(fold);
+            }
+            meta.append(userLink(reply.author_name, reply.user_id), timeEl(reply.created_at), hiddenNote);
+
+            const actions = h('div', { class: 'reply-actions' });
+
+            // EDIT / DELETE (own replies): uncomment when edit + delete are ready.
+            // if (currentUser && currentUser.id === reply.user_id) {
+            //     actions.append(
+            //         h('button', { type: 'button', class: 'act' }, 'edit'),
+            //         h('button', { type: 'button', class: 'act' }, 'delete'));
+            // }
+            // END EDIT / DELETE
+
+            const box = h('div', { class: 'reply-box' },
+                h('div', { class: 'reply-main' },
+                    h('div', { class: 'reply-content' }, meta, h('p', { class: 'reply-text' }, reply.content), actions),
+                    voteButton(reply, 'reply', false)));
+            actions.prepend(h('button', { type: 'button', class: 'act', onclick: () => openInlineReply(reply, box) }, 'reply'));
+
+            const li = h('li', {}, box);
+
+            // Children live in one list under the reply; the fold button hides it.
+            if (reply.children.length) {
+                const total = countAll(reply);
+                const childList = h('ol', { class: depth >= 3 ? 'reply-children flat' : 'reply-children' },
+                    ...reply.children.map((child) => renderReply(child, depth + 1)));
+                li.append(childList);
+
+                const setFolded = (folded) => {
+                    childList.hidden = folded;
+                    fold.textContent = folded ? '+' : '–';
+                    fold.setAttribute('aria-expanded', String(!folded));
+                    fold.setAttribute('aria-label', `${folded ? 'Show' : 'Hide'} ${plural(total, 'reply')} under @${name}`);
+                    hiddenNote.textContent = folded ? `/ ${plural(total, 'reply')} hidden` : '';
+                    if (folded) view.collapsed.add(reply.id);
+                    else view.collapsed.delete(reply.id);
+                };
+                fold.addEventListener('click', () => setFolded(!childList.hidden));
+                setFolded(view.collapsed.has(reply.id));
+            }
+            return li;
+        }
+
+        // ---------- replying ----------
+
+        async function postReply(text, parentId, errorEl, button) {
+            const content = text.trim();
+            if (!content) {
+                setMsg(errorEl, 'write something before posting');
+                return false;
             }
             if (content.length > 1000) {
-                alert('message must be 1000 characters or less');
-                return;
+                setMsg(errorEl, 'reply must be 1000 characters or less');
+                return false;
             }
-            const btn = document.getElementById('submit-reply');
-            btn.disabled = true; 
-
+            button.disabled = true;
             try {
-                const { data, error } = await supabaseClient
+                const { error } = await supabaseClient
                     .from('thread_replies')
-                    .insert({ thread_id: currentThread.id, content, parent_reply_id })
-                    .select();
-
+                    .insert({ thread_id: view.thread.id, content, parent_reply_id: parentId });
                 if (error) {
                     console.error(error);
-                    alert('failed to create reply');
-                    return;
+                    setMsg(errorEl, "couldn't post your reply, try again");
+                    return false;
                 }
-                contentInput.value = '';
-                parentIdInput.value = '';
-                loadReplyList();
+                return true;
             } finally {
-                btn.disabled = false; 
+                button.disabled = false;
+            }
+        }
+
+        // Reply form that opens inside the reply you're answering. One at a time.
+        function openInlineReply(reply, box) {
+            closeInlineReply();
+            const fieldId = `reply-to-${reply.id}`;
+            const textarea = h('textarea', { id: fieldId, class: 'field', maxlength: '1000', rows: '3', placeholder: 'write your reply...' });
+            const errorEl = h('p', { class: 'form-msg error', role: 'alert' });
+            const postBtn = h('button', { type: 'button', class: 'btn' }, 'post reply');
+            const form = h('div', { class: 'inline-reply' },
+                h('label', { for: fieldId, class: 'field-label' }, `replying to @${reply.author_name || 'anon'}`),
+                textarea,
+                errorEl,
+                h('div', { class: 'btn-row' }, postBtn, h('button', { type: 'button', class: 'btn', onclick: closeInlineReply }, 'cancel')));
+
+            textarea.addEventListener('input', () => setMsg(errorEl, ''));
+            postBtn.addEventListener('click', async () => {
+                if (await postReply(textarea.value, reply.id, errorEl, postBtn)) {
+                    view.collapsed.delete(reply.id); // show the new reply
+                    await loadReplies();
+                }
+            });
+
+            box.append(form);
+            view.openForm = form;
+            textarea.focus();
+        }
+
+        function closeInlineReply() {
+            view.openForm?.remove();
+            view.openForm = null;
+        }
+
+        const replyInput = $('reply-content');
+
+        function resetReplyComposer() {
+            replyInput.value = '';
+            $('reply-chars').textContent = '0 / 1000';
+            setMsg($('reply-error'), '');
+            setMsg($('reply-status'), '');
+        }
+
+        replyInput.addEventListener('input', () => {
+            $('reply-chars').textContent = `${replyInput.value.length} / 1000`;
+            setMsg($('reply-error'), '');
+            setMsg($('reply-status'), '');
+        });
+
+        $('submit-reply').addEventListener('click', async () => {
+            const button = $('submit-reply');
+            if (await postReply(replyInput.value, null, $('reply-error'), button)) {
+                resetReplyComposer();
+                setMsg($('reply-status'), 'reply posted');
+                await loadReplies();
             }
         });
-        document.getElementById('cancel-reply').addEventListener('click', () => {
-            resetReplyForm();
-        });
-        document.getElementById('cancel-thread').addEventListener('click', () => {
-            document.getElementById('new-thread-form').style.display = 'none';
-            document.getElementById('start-thread').style.display = 'inline-block';
-            document.getElementById('sort-controls').style.display = 'inline-block';
-        });
-        document.querySelectorAll('#sort-controls button').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const mode = btn.dataset.sort;
-                loadThreadList(mode);
+
+        document.querySelectorAll('.sort-chip').forEach((chip) => {
+            chip.addEventListener('click', () => {
+                view.sort = chip.dataset.sort;
+                document.querySelectorAll('.sort-chip').forEach((c) => c.setAttribute('aria-pressed', String(c === chip)));
+                renderReplies();
             });
         });
-        document.getElementById('back-to-board').addEventListener('click', () => {
-            document.getElementById('thread-view').style.display = 'none';
-            document.getElementById('board-view').style.display = 'block';
-            loadThreadList();
+
+        $('back-to-board').addEventListener('click', (e) => {
+            if (!isPlainClick(e)) return;
+            e.preventDefault();
+            go(boardUrl);
         });
-        loadThreadList();
+
+        $('copy-link').addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(location.href);
+                setMsg($('copy-status'), 'link copied');
+            } catch {
+                setMsg($('copy-status'), `copy this link: ${location.href}`);
+            }
+        });
+
+        route();
     </script>
 </body>
 </html>

@@ -5,10 +5,133 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KLOZET</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .home { max-width: 1100px; margin: 0 auto; }
+        .home a { text-decoration: none; }
+        .home p { white-space: normal; }
+
+        /* Shared bits */
+        .home-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            min-height: 44px; box-sizing: border-box; padding: 0 20px;
+            background: #000; color: #fff; border: 1px solid #fff;
+            font: inherit; font-size: 13px; letter-spacing: 1px; text-transform: lowercase;
+            cursor: pointer; white-space: nowrap;
+        }
+        .home-btn:hover { background: #222; color: #fff; }
+        .home-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #999; }
+        .home-h { margin: 0; font-size: 13px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; }
+        .home-more { color: #ccc; font-size: 12px; }
+        .home-more:hover { color: #fff; }
+        .home-box { border: 1px solid #222; padding: 24px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+        .home-box-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+        .home-muted { font-size: 12px; color: #8f8f8f; }
+        .home-empty { margin: 0; font-size: 13px; color: #8f8f8f; }
+
+        /* Logged out */
+        .landing { display: flex; flex-direction: column; gap: 120px; padding-top: 24px; }
+        .landing-hero { display: flex; flex-direction: column; align-items: center; gap: 48px; text-align: center; }
+        .landing-hero h1 { margin: 0; font-size: 40px; font-weight: 100; letter-spacing: 10px; }
+        .landing-hero img { display: block; width: 100%; max-width: 640px; aspect-ratio: 4 / 3; object-fit: cover; border: 1px solid #333; }
+        .landing-inside { display: flex; flex-direction: column; gap: 28px; }
+        .landing-inside h2 { margin: 0; font-size: 18px; letter-spacing: 4px; }
+        .features { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+        .feature { display: flex; flex-direction: column; gap: 10px; padding: 24px; border: 1px solid #222; color: #fff; }
+        .feature:hover { border-color: #555; background: #0f0f0f; color: #fff; }
+        .feature-name { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; }
+        .feature-text { font-size: 13px; color: #a8a8a8; }
+        .landing-cta { border: 1px solid #333; padding: 48px 32px; display: flex; flex-direction: column; align-items: center; gap: 24px; text-align: center; }
+        .landing-cta h2 { margin: 0; font-size: 22px; font-weight: 300; letter-spacing: 3px; text-transform: none; }
+        .landing-cta .home-btn { padding: 0 40px; }
+        .landing-footer { padding-top: 24px; border-top: 1px solid #222; font-size: 12px; color: #8f8f8f; text-align: center; }
+
+        /* Logged in */
+        .dash { display: flex; flex-direction: column; gap: 28px; }
+        .dash-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; }
+        .dash-head h1 { margin: 0; font-size: 26px; font-weight: 300; letter-spacing: 1px; text-align: left; }
+        .dash-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+        .dash-top { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; }
+        .dash-top.solo { grid-template-columns: minmax(0, 1fr); }
+        .dash-row { display: grid; gap: 20px; }
+        .dash-row.narrow-first { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+        .dash-row.wide-first { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+
+        .today-text { margin: 0; font-size: 14px; color: #c8c8c8; }
+        .today-posted { display: flex; gap: 16px; align-items: center; color: #fff; }
+        .today-posted img { width: 72px; height: 96px; object-fit: cover; border: 1px solid #333; }
+        .today-meta { display: flex; flex-direction: column; gap: 2px; }
+        .week { display: flex; flex-direction: column; gap: 10px; padding-top: 16px; border-top: 1px solid #1a1a1a; }
+        .week-head { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: #a8a8a8; }
+        .week-days { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; max-width: 420px; }
+        .day { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: #999; }
+        .dot { width: 100%; aspect-ratio: 1; box-sizing: border-box; border: 1px solid #333; }
+        .dot.on { background: #fff; border-color: #fff; }
+        .dot.today { border-color: #fff; border-style: dashed; }
+        .dot.on.today { border-style: solid; }
+
+        .start-hide { min-height: 40px; padding: 0 4px; background: transparent; border: 0; color: #999; font: inherit; font-size: 12px; text-transform: lowercase; cursor: pointer; }
+        .start-hide:hover { background: transparent; color: #fff; }
+        .bar-track { height: 10px; background: #161616; }
+        .bar { height: 10px; background: #e8e8e8; }
+        .tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+        .task { display: flex; align-items: center; gap: 12px; min-height: 40px; font-size: 13px; color: #ddd; }
+        .task:hover { color: #fff; }
+        .check { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 1px solid #666; color: #000; }
+        .task.done .check { border-color: #fff; background: #fff; }
+        .task.done .task-text { color: #8f8f8f; text-decoration: line-through; }
+
+        .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+        .stat { display: flex; flex-direction: column; gap: 2px; padding: 20px 24px; border: 1px solid #222; }
+        .stat-value { font-size: 30px; font-weight: 300; }
+
+        .cats { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+        .cat { display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px; gap: 12px; align-items: center; font-size: 13px; }
+        .cat-name { color: #ccc; }
+        .cat-n { text-align: right; }
+
+        .tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+        .tile { display: flex; flex-direction: column; gap: 6px; color: #fff; min-width: 0; }
+        .tile img, .tile-ph { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; background: #111; border: 1px solid #222; box-sizing: border-box; }
+        .tile:hover img { border-color: #666; }
+        .tile-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tile-sub { display: flex; gap: 10px; font-size: 11px; color: #8f8f8f; }
+
+        .my-outfits { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+        .my-outfit { display: flex; flex-direction: column; gap: 6px; color: #fff; }
+        .my-outfit img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border: 1px solid #222; }
+        .my-outfit:hover img { border-color: #666; }
+        .my-outfit-meta { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; color: #a8a8a8; }
+
+        .threads { display: flex; flex-direction: column; }
+        .thread { display: flex; flex-direction: column; gap: 2px; padding: 12px 0; border-bottom: 1px solid #1a1a1a; color: #fff; }
+        .thread:hover .thread-title { color: #ccc; }
+        .thread-title { font-size: 13px; }
+        .thread-by { font-size: 11px; color: #8f8f8f; }
+
+        .pins { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: start; }
+        .pin { display: flex; flex-direction: column; gap: 6px; color: #fff; min-width: 0; }
+        .pin img { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border: 1px solid #222; }
+        .pin:hover img { border-color: #666; }
+        .pin-title { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        @media (max-width: 900px) {
+            .features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .dash-top, .dash-row.narrow-first, .dash-row.wide-first { grid-template-columns: minmax(0, 1fr); }
+            .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .pins { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (max-width: 560px) {
+            .features { grid-template-columns: minmax(0, 1fr); }
+            .landing { gap: 64px; }
+            .landing-hero h1 { font-size: 30px; letter-spacing: 8px; }
+            .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .stat-value { font-size: 22px; }
+        }
+    </style>
 </head>
 <body>
     <nav>
-        <a href="index.html">HOME</a>
+        <a href="index.html" aria-current="page">HOME</a>
         <a href="closet.html">KLOZET</a>
         <a href="outfits.html">OUTFITS</a>
         <a href="inspo.html">INSPO</a>
@@ -17,15 +140,406 @@
         <a href="auth.html" id="auth-link">LOGIN</a>
     </nav>
 
-    <h1>klozet</h1>
+    <!-- Logged out: minimal landing -->
+    <main class="home landing" id="landing" hidden>
+        <section class="landing-hero" aria-labelledby="hero-title">
+            <h1 id="hero-title">klozet</h1>
+            <img src="pics/front page logo 2.jpg" alt="Racks of clothes in a dim, abandoned store">
+        </section>
 
-    <div style="text-align: center;">
-        <img src="pics/front page logo 2.jpg" alt="Vibe" style="max-width: 400px; border: 1px solid #333;">
-        <p style="margin-top: 2rem; color: #666;">creator: kevin wright </p>
-    </div>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+        <section class="landing-inside" aria-labelledby="inside-title">
+            <h2 id="inside-title">what's inside</h2>
+            <div class="features">
+                <a href="closet.html" class="feature">
+                    <span class="feature-name">klozet</span>
+                    <span class="feature-text">Your digital closet. Search, filter by category or colour, sort by price.</span>
+                </a>
+                <a href="outfits.html" class="feature">
+                    <span class="feature-name">outfits</span>
+                    <span class="feature-text">Post full outfits, browse everyone's, upvote the best ones.</span>
+                </a>
+                <a href="inspo.html" class="feature">
+                    <span class="feature-name">inspo</span>
+                    <span class="feature-text">A board for looks you want to try, from anywhere.</span>
+                </a>
+                <a href="forum.html" class="feature">
+                    <span class="feature-name">forum</span>
+                    <span class="feature-text">Ask for outfit checks, sizing help, and where to cop.</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="landing-cta" aria-labelledby="cta-title">
+            <h2 id="cta-title">start your klozet</h2>
+            <a href="auth.html?redirect=index.html" class="home-btn">sign up</a>
+        </section>
+
+        <footer class="landing-footer">creator: kevin wright</footer>
+    </main>
+
+    <!-- Logged in: dashboard -->
+    <main class="home dash" id="dashboard" hidden>
+        <div class="dash-head">
+            <h1 id="greeting">hey</h1>
+            <div class="dash-actions">
+                <a href="add_item.html" class="home-btn">add item</a>
+                <a href="add-outfit.html" class="home-btn">post outfit</a>
+            </div>
+        </div>
+
+        <div class="dash-top" id="dash-top">
+            <section class="home-box" aria-labelledby="today-title">
+                <h2 id="today-title" class="home-h">what are you wearing today?</h2>
+                <div id="today-empty" hidden>
+                    <p class="today-text">No outfit posted today yet.</p>
+                    <div style="margin-top: 18px;">
+                        <a href="add-outfit.html" class="home-btn">post today's outfit</a>
+                    </div>
+                </div>
+                <a href="#" class="today-posted" id="today-posted" hidden>
+                    <img id="today-img" src="" alt="">
+                    <span class="today-meta">
+                        <span id="today-name" style="font-size: 14px;"></span>
+                        <span style="display: flex; gap: 12px; font-size: 12px; color: #a8a8a8;">
+                            <span id="today-ago"></span><span id="today-votes"></span>
+                        </span>
+                    </span>
+                </a>
+                <div class="week">
+                    <div class="week-head">
+                        <span>this week</span>
+                        <span id="week-count">0 of 7 days posted</span>
+                    </div>
+                    <ol class="week-days" id="week-days" aria-label="Outfits posted this week"></ol>
+                </div>
+            </section>
+
+            <section class="home-box" id="start-box" aria-labelledby="start-title" style="gap: 12px;" hidden>
+                <div class="home-box-head" style="align-items: center;">
+                    <h2 id="start-title" class="home-h">getting started</h2>
+                    <button type="button" class="start-hide" id="start-hide">hide</button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                    <span class="home-muted" id="start-count" style="color: #a8a8a8;"></span>
+                    <div class="bar-track" id="start-bar-track" role="img"><div class="bar" id="start-bar" style="width: 0%;"></div></div>
+                </div>
+                <ul class="tasks" id="tasks"></ul>
+            </section>
+        </div>
+
+        <section style="display: flex; flex-direction: column; gap: 16px;" aria-labelledby="stats-title">
+            <div class="home-box-head">
+                <h2 id="stats-title" class="home-h">your closet</h2>
+                <a href="closet.html" class="home-more">open klozet</a>
+            </div>
+            <div class="stats">
+                <div class="stat"><span class="home-label">items</span><span class="stat-value" id="stat-items">–</span></div>
+                <div class="stat"><span class="home-label">closet value</span><span class="stat-value" id="stat-value">–</span></div>
+                <div class="stat"><span class="home-label">outfits posted</span><span class="stat-value" id="stat-outfits">–</span></div>
+                <div class="stat"><span class="home-label">upvotes</span><span class="stat-value" id="stat-upvotes">–</span></div>
+            </div>
+        </section>
+
+        <div class="dash-row narrow-first">
+            <section class="home-box" aria-labelledby="cat-title">
+                <h2 id="cat-title" class="home-h">by category</h2>
+                <ul class="cats" id="cats"></ul>
+                <p class="home-empty" id="cats-empty" hidden>Add items to see your categories.</p>
+            </section>
+
+            <section class="home-box" aria-labelledby="recent-title">
+                <div class="home-box-head">
+                    <h2 id="recent-title" class="home-h">recently added</h2>
+                    <a href="closet.html" class="home-more">see all</a>
+                </div>
+                <ul class="tiles" id="recent"></ul>
+                <p class="home-empty" id="recent-empty" hidden>Nothing in your klozet yet.</p>
+            </section>
+        </div>
+
+        <div class="dash-row wide-first">
+            <section class="home-box" aria-labelledby="mine-title">
+                <div class="home-box-head">
+                    <h2 id="mine-title" class="home-h">your latest outfits</h2>
+                    <a href="#" class="home-more" id="mine-all">see all yours</a>
+                </div>
+                <ul class="my-outfits" id="my-outfits"></ul>
+                <p class="home-empty" id="my-outfits-empty" hidden>You haven't posted an outfit yet.</p>
+            </section>
+
+            <section class="home-box" aria-labelledby="forum-title" style="gap: 6px;">
+                <div class="home-box-head">
+                    <h2 id="forum-title" class="home-h">new forum posts</h2>
+                    <a href="forum.html" class="home-more">open forum</a>
+                </div>
+                <div class="threads" id="threads"></div>
+                <p class="home-empty" id="threads-empty" hidden>No threads yet.</p>
+            </section>
+        </div>
+
+        <section class="home-box" aria-labelledby="inspo-title">
+            <div class="home-box-head">
+                <h2 id="inspo-title" class="home-h">new on inspo</h2>
+                <a href="inspo.html" class="home-more">open inspo</a>
+            </div>
+            <ul class="pins" id="pins"></ul>
+            <p class="home-empty" id="pins-empty" hidden>Nothing on the inspo board yet.</p>
+        </section>
+    </main>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2.45.4"></script>
 <script src="config.js"></script>
 <script src="session.js"></script>
+<script>
+(function () {
+    const $ = (id) => document.getElementById(id);
+    const CATEGORY_LABELS = { tops: 'tops', bottoms: 'bottoms', outwear: 'outerwear', shoes: 'shoes', accessories: 'accessories', other: 'other' };
+    const ITEM_GOAL = 25;
+    const MY_OUTFITS_URL = 'outfits.html?who=mine';
+
+    function el(tag, attrs, ...children) {
+        const node = document.createElement(tag);
+        for (const [key, value] of Object.entries(attrs || {})) {
+            if (key === 'class') node.className = value;
+            else node.setAttribute(key, value);
+        }
+        for (const child of children) {
+            if (child == null) continue;
+            node.append(child instanceof Node ? child : String(child));
+        }
+        return node;
+    }
+
+    // "just now", "12m", "3h", "2d", then "oct 2"
+    function shortAgo(iso) {
+        const date = new Date(iso);
+        const mins = Math.floor((Date.now() - date) / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return `${mins}m`;
+        const hours = Math.floor(mins / 60);
+        if (hours < 24) return `${hours}h`;
+        const days = Math.floor(hours / 24);
+        if (days < 30) return `${days}d`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toLowerCase();
+    }
+
+    function sameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    }
+
+    function startOfWeek(now) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const offset = (d.getDay() + 6) % 7; // Monday = 0
+        d.setDate(d.getDate() - offset);
+        return d;
+    }
+
+    function money(n) {
+        return '$' + Math.round(n).toLocaleString('en-US');
+    }
+
+    function checkIcon() {
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '12'); svg.setAttribute('height', '12'); svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', 'currentColor'); svg.setAttribute('stroke-width', '3');
+        svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', 'M5 12l5 5L20 7');
+        svg.append(path);
+        return svg;
+    }
+
+    // ---------- today + week ----------
+    function renderToday(outfits) {
+        const now = new Date();
+        const todays = outfits.find((o) => sameDay(new Date(o.created_at), now));
+        if (todays) {
+            $('today-title').textContent = "today's outfit";
+            $('today-img').src = todays.img_url;
+            $('today-img').alt = todays.title || 'Today\'s outfit';
+            $('today-name').textContent = todays.title || 'untitled';
+            $('today-ago').textContent = shortAgo(todays.created_at);
+            $('today-votes').textContent = `▲ ${todays.upvotes || 0}`;
+            $('today-posted').href = MY_OUTFITS_URL;
+            $('today-posted').hidden = false;
+        } else {
+            $('today-empty').hidden = false;
+        }
+
+        const monday = startOfWeek(now);
+        const labels = ['m', 't', 'w', 't', 'f', 's', 's'];
+        const list = $('week-days');
+        let posted = 0;
+        labels.forEach((label, i) => {
+            const day = new Date(monday);
+            day.setDate(monday.getDate() + i);
+            const on = outfits.some((o) => sameDay(new Date(o.created_at), day));
+            const isToday = sameDay(day, now);
+            if (on) posted++;
+            const status = on ? 'posted' : (isToday ? 'today, not posted' : 'not posted');
+            list.append(el('li', { class: 'day' },
+                el('span', { class: 'dot' + (on ? ' on' : '') + (isToday ? ' today' : ''), 'aria-hidden': 'true' }),
+                el('span', {}, label, el('span', { class: 'visually-hidden', style: 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);' }, ' ' + status))
+            ));
+        });
+        $('week-count').textContent = `${posted} of 7 days posted`;
+    }
+
+    // ---------- getting started ----------
+    function renderStart({ itemCount, outfitCount, threadCount, profile }) {
+        const hasAvatar = !!(profile && profile.avatar_url && !profile.avatar_url.includes('default-avatar'));
+        const tasks = [
+            { text: 'add your first item', done: itemCount > 0, href: 'add_item.html' },
+            { text: 'set a profile picture', done: hasAvatar, href: 'edit_profile.html' },
+            { text: 'post your first outfit', done: outfitCount > 0, href: 'add-outfit.html' },
+            { text: itemCount >= ITEM_GOAL ? `add ${ITEM_GOAL} items` : `add ${ITEM_GOAL} items (you have ${itemCount})`, done: itemCount >= ITEM_GOAL, href: 'add_item.html' },
+            { text: 'start a forum thread', done: threadCount > 0, href: 'forum.html' }
+        ];
+        const done = tasks.filter((t) => t.done).length;
+        if (done === tasks.length) return; // nothing left: keep it hidden
+
+        $('start-count').textContent = `${done} of ${tasks.length} done`;
+        $('start-bar').style.width = `${Math.round(done / tasks.length * 100)}%`;
+        $('start-bar-track').setAttribute('aria-label', `${done} of ${tasks.length} steps done`);
+        const list = $('tasks');
+        tasks.forEach((t) => {
+            const check = el('span', { class: 'check', 'aria-hidden': 'true' });
+            if (t.done) check.append(checkIcon());
+            list.append(el('li', {}, el('a', { href: t.href, class: 'task' + (t.done ? ' done' : '') },
+                check, el('span', { class: 'task-text' }, t.text),
+                t.done ? el('span', { style: 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);' }, ' (done)') : null)));
+        });
+        $('start-box').hidden = false;
+        $('dash-top').classList.remove('solo');
+    }
+
+    // ---------- closet ----------
+    function renderCloset(items, outfits) {
+        const priced = items.filter((i) => i.price != null && !isNaN(Number(i.price)));
+        $('stat-items').textContent = items.length;
+        $('stat-value').textContent = money(priced.reduce((sum, i) => sum + Number(i.price), 0));
+        $('stat-outfits').textContent = outfits.length;
+        $('stat-upvotes').textContent = outfits.reduce((sum, o) => sum + (o.upvotes || 0), 0);
+
+        // by category
+        const counts = {};
+        items.forEach((i) => {
+            const key = (i.category || 'other').toLowerCase();
+            counts[key] = (counts[key] || 0) + 1;
+        });
+        const rows = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        const max = rows.length ? rows[0][1] : 1;
+        if (!rows.length) $('cats-empty').hidden = false;
+        rows.forEach(([key, n]) => {
+            const bar = el('div', { class: 'bar' });
+            bar.style.width = `${Math.round(n / max * 100)}%`;
+            $('cats').append(el('li', { class: 'cat' },
+                el('span', { class: 'cat-name' }, CATEGORY_LABELS[key] || key),
+                el('div', { class: 'bar-track' }, bar),
+                el('span', { class: 'cat-n' }, n)));
+        });
+
+        // recently added (items arrive newest first)
+        const recent = items.slice(0, 4);
+        if (!recent.length) $('recent-empty').hidden = false;
+        recent.forEach((item) => {
+            const pic = item.img_url
+                ? el('img', { src: item.img_url, alt: item.title || 'Closet item', loading: 'lazy' })
+                : el('span', { class: 'tile-ph', 'aria-hidden': 'true' });
+            const sub = el('span', { class: 'tile-sub' });
+            if (item.brand) sub.append(el('span', {}, item.brand));
+            if (item.size) sub.append(el('span', {}, item.size));
+            $('recent').append(el('li', {}, el('a', { href: 'closet.html', class: 'tile' },
+                pic, el('span', { class: 'tile-title' }, item.title || 'untitled'), sub)));
+        });
+    }
+
+    // ---------- your latest outfits ----------
+    function renderMyOutfits(outfits, userId) {
+        $('mine-all').href = MY_OUTFITS_URL;
+        const latest = outfits.slice(0, 3);
+        if (!latest.length) $('my-outfits-empty').hidden = false;
+        latest.forEach((o) => {
+            $('my-outfits').append(el('li', {}, el('a', { href: MY_OUTFITS_URL, class: 'my-outfit' },
+                el('img', { src: o.img_url, alt: o.title || 'Outfit photo', loading: 'lazy' }),
+                el('span', { class: 'my-outfit-meta' },
+                    el('span', {}, `▲ ${o.upvotes || 0}`),
+                    el('span', {}, shortAgo(o.created_at))))));
+        });
+    }
+
+    // ---------- new forum posts ----------
+    function renderThreads(threads) {
+        if (!threads.length) $('threads-empty').hidden = false;
+        threads.forEach((t) => {
+            $('threads').append(el('a', { href: `forum.html?thread=${encodeURIComponent(t.id)}`, class: 'thread' },
+                el('span', { class: 'thread-title' }, t.title || 'untitled'),
+                el('span', { class: 'thread-by' }, `@${t.author_name || 'anon'}`)));
+        });
+    }
+
+    // ---------- new on inspo ----------
+    function renderPins(pins) {
+        if (!pins.length) $('pins-empty').hidden = false;
+        pins.forEach((p) => {
+            $('pins').append(el('li', {}, el('a', { href: 'inspo.html', class: 'pin' },
+                el('img', { src: p.image_url, alt: p.title || 'Inspo photo', loading: 'lazy' }),
+                el('span', { class: 'pin-title' }, p.title || 'untitled'))));
+        });
+    }
+
+    async function loadDashboard(user) {
+        $('dash-top').classList.add('solo');
+        $('dashboard').hidden = false;
+
+        const [profileRes, itemsRes, outfitsRes, threadCountRes, threadsRes, pinsRes] = await Promise.all([
+            supabaseClient.from('profiles').select('username, avatar_url').eq('id', user.id).maybeSingle(),
+            supabaseClient.from('clothing_items').select('id, title, brand, size, category, price, img_url, created_at')
+                .eq('user_id', user.id).order('created_at', { ascending: false }),
+            supabaseClient.from('outfits').select('id, title, img_url, upvotes, created_at, user_id')
+                .eq('user_id', user.id).order('created_at', { ascending: false }),
+            supabaseClient.from('threads').select('*', { count: 'exact', head: true }).eq('user_id', user.id),
+            supabaseClient.from('threads').select('id, title, author_name, created_at')
+                .order('created_at', { ascending: false }).limit(3),
+            supabaseClient.from('inspo_board').select('id, title, image_url, created_at')
+                .order('created_at', { ascending: false }).limit(4)
+        ]);
+
+        [profileRes, itemsRes, outfitsRes, threadCountRes, threadsRes, pinsRes].forEach((res) => {
+            if (res.error) console.error('Home dashboard query failed:', res.error);
+        });
+
+        const profile = profileRes.data;
+        const items = itemsRes.data || [];
+        const outfits = outfitsRes.data || [];
+
+        $('greeting').textContent = profile && profile.username ? `hey @${profile.username}` : 'hey';
+        renderToday(outfits);
+        renderStart({ itemCount: items.length, outfitCount: outfits.length, threadCount: threadCountRes.count || 0, profile });
+        renderCloset(items, outfits);
+        renderMyOutfits(outfits, user.id);
+        renderThreads(threadsRes.data || []);
+        renderPins(pinsRes.data || []);
+    }
+
+    // Hiding lasts until the page reloads.
+    $('start-hide').addEventListener('click', () => {
+        $('start-box').hidden = true;
+        $('dash-top').classList.add('solo');
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        let user = null;
+        try {
+            user = await getSignedInUser();
+        } catch (error) {
+            console.error('Could not check sign-in:', error);
+        }
+        if (user) loadDashboard(user);
+        else $('landing').hidden = false;
+    });
+})();
+</script>
 
 </body>
 </html>
